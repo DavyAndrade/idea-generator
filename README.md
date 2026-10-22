@@ -48,6 +48,24 @@ flutter run
 flutter build apk --debug
 ```
 
+## Build do APK (requer JDK)
+
+`flutter build apk` precisa de um JDK 17+. Se não houver um instalado no sistema:
+
+```bash
+# baixa Adoptium Temurin 17 portátil (~190MB) sem sudo
+mkdir -p ~/jdks && cd ~/jdks
+curl -fsSL -o jdk17.tar.gz \
+  "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
+tar xzf jdk17.tar.gz && rm jdk17.tar.gz   # extrai p/ jdk-17.0.21+9/
+
+export JAVA_HOME="$HOME/jdks/jdk-17.0.21+9"
+export PATH="$JAVA_HOME/bin:$PATH"
+flutter build apk --debug
+```
+
+APK sai em `build/app/outputs/flutter-apk/app-debug.apk`.
+
 ## Setup
 
 1. `flutter pub get`

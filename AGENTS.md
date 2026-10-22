@@ -10,8 +10,20 @@ Repositório: /home/davy/Desenvolvimento/Projetos/GeradorDeIdeias
 - `flutter pub get` — deps
 - `flutter analyze` — lint (deve sair 0 issues antes de commitar)
 - `flutter test` — testes (deve passar antes de commitar)
-- `flutter build apk --debug` — smoke build
+- `flutter build apk --debug` — smoke build (requer JDK 17+)
 - `dart format lib test` — formatação
+
+## JDK p/ build do APK
+
+Máquina sem JDK do sistema (sudo pede senha). JDK portátil já baixado em
+`~/jdks/jdk-17.0.21+9`. Antes de `flutter build apk`:
+
+```bash
+export JAVA_HOME=/home/davy/jdks/jdk-17.0.21+9
+export PATH="$JAVA_HOME/bin:$PATH"
+```
+
+Se a pasta não existir, o README tem o comando de download (Adoptium 17, sem sudo).
 
 ## Stack decisions (não mudar sem pedido explícito)
 
