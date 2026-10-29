@@ -18,17 +18,47 @@ Google AI Studio.
 ```
 apps/web/
   src/
-    lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), storage.ts (CRUD), utils.ts
+    lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), crypto.ts (Web Crypto), storage.ts (auth + CRUD), utils.ts
     components/     # TelaGerar, TelaHistorico, TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
     components/ui/  # shadcn/ui (Badge, Button, Card, Input)
-    types.ts        # Ideia, Categoria, ModeloGemini, constantes
-    App.tsx         # Shell com navegação por abas
+    types.ts        # Ideia, UsuarioSessao, Categoria, ModeloGemini, constantes
+    App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
     main.tsx        # Entry point React 19
   public/           # manifest.webmanifest, sw.js, icon.svg
 ```
 
-**Fluxo:** tela → `lib/storage.ts` (CRUD local via Turso) → API externa (Gemini REST).
+**Fluxo:** tela → `lib/storage.ts` (auth + CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
 Não há backend próprio — o app fala direto com Gemini e Turso.
+
+## Registro/Login Zero-Knowledge
+
+O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente nem é armazenada no servidor.
+
+1. **Registro:** `registrarUsuario({ nome, email, senha })`:
+   - Gera `salt` aleatório (16 bytes hex) via `crypto.getRandomValues`
+   - Deriva `authHashHex` e `vaultKeyHex` via **PBKDF2-SHA256** (100.000 iterações, 512 bits)
+   - `authHashHex` (64 hex chars, 256 bits, sem prefixos) → armazenado como `credencial_hash` no banco
+   - `vaultKeyHex` (64 hex chars, 256 bits) → mantida apenas em memória/sessionStorage (nunca persistida)
+   - A chave Gemini do usuário é **criptografada com AES-256-GCM** usando `vaultKeyHex` antes de ser salva como `gemini_key_cifrada`
+
+2. **Login:** `loginUsuario({ email, senha })`:
+   - Busca o `salt` e `credencial_hash` do usuário pelo email
+   - Deriva `authHashHex` localmente com a senha informada
+   - Compara com `constantTimeEquals` (evita timing attacks)
+   - Se válido, carrega `vaultKeyHex` em memória para decifrar a chave Gemini
+
+3. **Chave Gemini:** `lerChave()` / `salvarChave()`:
+   - Modo autenticado: chave fica **AES-256-GCM cifrada** com `vaultKeyHex`, armazenada como `gemini_key_cifrada`
+   - Modo legado (sem login): chave em texto plano na tabela `configuracoes`
+   - O servidor nunca vê a senha nem a chave Gemini em texto plano
+
+### Web Crypto API
+
+- `gerarSaltHex()` — salt aleatório de 16 bytes
+- `derivarChaves(senha, salt)` — PBKDF2-SHA256 → `authHashHex` + `vaultKeyHex` (256 bits cada, formato opaco hex sem prefixos)
+- `cifrarTexto(texto, chaveHex)` — AES-256-GCM com IV aleatório por operação (ciphertext único a cada chamada)
+- `decifrarTexto(ciphertextHex, chaveHex)` — AES-256-GCM decrypt
+- `constantTimeEquals(a, b)` — comparação em tempo constante
 
 ## Variáveis de ambiente
 

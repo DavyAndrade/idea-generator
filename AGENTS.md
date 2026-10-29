@@ -31,15 +31,22 @@ All from `apps/web/` (root `package.json` scripts delegate via `bun --cwd apps/w
 
 ```
 apps/web/src/
-  lib/            # Integração: turso.ts, gemini.ts, storage.ts, utils.ts
+  lib/            # Integração: turso.ts, gemini.ts, crypto.ts, storage.ts, utils.ts
   components/     # Telas e widgets reusáveis
   components/ui/  # Componentes shadcn/ui
-  types.ts        # Entidade Ideia, tipos e constantes
+  types.ts        # Entidade Ideia, UsuarioSessao, tipos e constantes
   App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
 ```
 
-**Fluxo:** tela → `lib/storage.ts` (CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
-Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts` ou `lib/gemini.ts`.
+**Fluxo:** tela → `lib/storage.ts` (auth + CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
+Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts`, `lib/gemini.ts` ou `lib/crypto.ts`.
+
+## Registro/Login Zero-Knowledge
+
+Zero-knowledge authentication via Web Crypto API (nunca expõe algoritmo no hash).
+
+- `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves()` (PBKDF2-SHA256 → authHashHex + vaultKeyHex, ambas 64 hex chars), `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
+- `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
 
 ## TursoDB
 
@@ -49,6 +56,16 @@ Tabelas (criadas automaticamente por `initTurso()`):
 CREATE TABLE configuracoes (
   chave TEXT PRIMARY KEY,
   valor TEXT NOT NULL
+);
+CREATE TABLE usuarios (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  nome TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  salt TEXT NOT NULL,
+  credencial_hash TEXT NOT NULL,  -- authHashHex (PBKDF2, 256 bits, formato opaco)
+  gemini_key_cifrada TEXT,        -- AES-256-GCM cifrada com vaultKeyHex
+  gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
+  criado_em TEXT NOT NULL
 );
 CREATE TABLE ideias (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,7 +79,7 @@ CREATE TABLE ideias (
 );
 ```
 
-- `gemini_api_key` e `gemini_modelo` → tabela `configuracoes`
+- `gemini_api_key` + `gemini_modelo` → tabela `configuracoes` (modo legado) **ou** `usuarios.gemini_key_cifrada` + `usuarios.gemini_modelo` (modo autenticado)
 - Ideias → tabela `ideias`
 - Busca: `listarIdeias({ somenteFavoritas, busca })` com `LIKE` no SQL
 
@@ -83,7 +100,7 @@ VITE_TURSO_AUTH_TOKEN=SEU_TOKEN
 
 ## Testing
 
-- Unit: `lib/gemini.ts`, `lib/turso.ts`, `lib/storage.ts`, `lib/utils.ts` (Vitest)
+- Unit: `lib/gemini.ts`, `lib/turso.ts`, `lib/crypto.ts`, `lib/storage.ts`, `lib/utils.ts` (Vitest)
 - Component: telas com React Testing Library
 - Rodar: `bun test`
 

@@ -16,7 +16,7 @@ GeradorDeIdeias/
 
 **Layered flow:** UI components → `lib/storage.ts` (Turso CRUD) → external APIs (Gemini REST, Turso HTTP Pipeline v2). No backend of its own.
 
-- `src/lib/` — integration layer: `turso.ts` (HTTP Pipeline v2 client, libsql→https), `gemini.ts` (REST v1beta, BYOK via x-goog-api-key), `storage.ts` (CRUD over Turso `configuracoes` + `ideias` tables), `utils.ts` (`cn()`).
+- `src/lib/` — integration layer: `turso.ts` (HTTP Pipeline v2 client, libsql→https), `gemini.ts` (REST v1beta, BYOK via x-goog-api-key), `crypto.ts` (Web Crypto zero-knowledge auth + AES-256-GCM vault), `storage.ts` (auth + CRUD over Turso `configuracoes`/`usuarios` + `ideias` tables), `utils.ts` (`cn()`).
 - `src/components/` — app components: `App.tsx` (tab shell), `app-bar.tsx`, `banner-sem-chave.tsx`, `tela-gerar.tsx`, `tela-historico.tsx`, `tela-configuracao.tsx`, `ideia-card.tsx`, `acao-toast.tsx`.
 - `src/components/ui/` — shadcn-style primitives: `button.tsx`, `card.tsx`, `input.tsx`, `badge.tsx`.
 - `src/types.ts` — `Ideia`, `Categoria`, `ModeloGemini`, `CATEGORIAS`, `MODELOS_DISPONIVEIS`, `MODELO_PADRAO`.
