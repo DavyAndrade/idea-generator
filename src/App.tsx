@@ -80,14 +80,19 @@ export function App() {
         <AppBar
           dark={dark}
           onToggleDark={() => setDark(!dark)}
-          usuarioNome={sessao.nome}
           onLogout={handleLogout}
         />
 
         {aba === 0 && chave === "" && <BannerSemChave onClick={irConfig} />}
 
         <main className="flex flex-1 flex-col">
-          {aba === 0 && <TelaGerar chave={chave} modelo={modelo} />}
+          {aba === 0 && (
+            <TelaGerar
+              chave={chave}
+              modelo={modelo}
+              usuarioNome={sessao.nome}
+            />
+          )}
           {aba === 1 && (
             <TelaHistorico recarregarTrigger={recarregarHistorico} />
           )}

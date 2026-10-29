@@ -4,18 +4,14 @@ import { Button } from "./ui/button";
 interface AppBarProps {
   dark: boolean;
   onToggleDark: () => void;
-  usuarioNome?: string;
   onLogout?: () => void;
 }
 
 export function AppBar({
   dark,
   onToggleDark,
-  usuarioNome,
   onLogout,
 }: AppBarProps) {
-  const primeiroNome = usuarioNome?.split(/[ \t]+/)[0] ?? "";
-
   return (
     <header className="border-b bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="flex h-14 items-center justify-between px-4">
@@ -24,11 +20,6 @@ export function AppBar({
           <h1 className="text-lg font-semibold tracking-tight">Lumi</h1>
         </div>
         <div className="flex items-center gap-2">
-          {primeiroNome && (
-            <span className="text-sm text-muted-foreground">
-              {primeiroNome}
-            </span>
-          )}
           <Button
             variant="ghost"
             size="sm"
@@ -37,7 +28,7 @@ export function AppBar({
           >
             {dark ? <Moon size={16} /> : <Sun size={16} />}
           </Button>
-          {onLogout && primeiroNome && (
+          {onLogout && (
             <Button
               variant="ghost"
               size="sm"

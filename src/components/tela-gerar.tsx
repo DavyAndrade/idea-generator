@@ -12,9 +12,11 @@ import { ResultadoGerar } from "./ideia-card";
 interface TelaGerarProps {
   chave: string;
   modelo: ModeloGemini;
+  usuarioNome?: string;
 }
 
-export function TelaGerar({ chave, modelo }: TelaGerarProps) {
+export function TelaGerar({ chave, modelo, usuarioNome }: TelaGerarProps) {
+  const primeiroNome = usuarioNome?.trim().split(/\s+/)[0];
   const [tema, setTema] = useState("");
   const [categoria, setCategoria] = useState<string>(CATEGORIAS[0]);
   const [gerando, setGerando] = useState(false);
@@ -85,6 +87,15 @@ export function TelaGerar({ chave, modelo }: TelaGerarProps) {
   return (
     <div className="flex-1 overflow-y-auto p-4">
       <div className="space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">
+            {primeiroNome ? `Olá, ${primeiroNome}!` : "Olá!"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            O que você pensa em criar hoje?
+          </p>
+        </div>
+
         <Input
           placeholder="Tema da ideia"
           value={tema}
