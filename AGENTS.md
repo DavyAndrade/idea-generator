@@ -45,7 +45,7 @@ Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts`, `lib/
 
 Zero-knowledge authentication via Web Crypto API (nunca expõe algoritmo no hash).
 
-- `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves()` (PBKDF2-SHA256 → authHashHex + vaultKeyHex, ambas 64 hex chars), `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
+- `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256**, derivando 512 bits divididos em `authHashHex` (256 bits, formato opaco hex de 64 chars sem prefixo PHC `$argon2`) + `vaultKeyHex` (256 bits para AES-256-GCM), `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
 - `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
 - `components/tela-auth.tsx`: exige senha forte no cadastro (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial) com checklist em tempo real.
 
@@ -63,7 +63,7 @@ CREATE TABLE usuarios (
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   salt TEXT NOT NULL,
-  credencial_hash TEXT NOT NULL,  -- authHashHex (PBKDF2, 256 bits, formato opaco)
+  credencial_hash TEXT NOT NULL,  -- authHashHex (Argon2id + Pepper HMAC-SHA256, 256 bits, formato opaco sem prefixo PHC)
   gemini_key_cifrada TEXT,        -- AES-256-GCM cifrada com vaultKeyHex
   gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
   criado_em TEXT NOT NULL
@@ -98,6 +98,7 @@ CREATE TABLE ideias (
 ```env
 VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
 VITE_TURSO_AUTH_TOKEN=SEU_TOKEN
+VITE_AUTH_PEPPER=SEU_PEPPER_ALEATORIO
 ```
 
 ## Testing

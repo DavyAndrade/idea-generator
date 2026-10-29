@@ -24,12 +24,15 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
   });
 
   describe('derivarChaves', () => {
-    it('produz authHashHex de 64 hex chars sem prefixos', async () => {
+    it('produz authHashHex de 64 hex chars sem prefixos PHC ($argon2)', async () => {
       const salt = await gerarSaltHex();
       const { authHashHex, vaultKeyHex } = await derivarChaves(SENHA, salt);
       expect(authHashHex).toMatch(/^[0-9a-f]{64}$/);
       expect(vaultKeyHex).toMatch(/^[0-9a-f]{64}$/);
       expect(authHashHex).not.toContain(':');
+      expect(authHashHex).not.toContain('$argon2');
+      expect(authHashHex).not.toContain('$argon');
+      expect(authHashHex).not.toContain('argon2');
     });
 
     it('authHashHex !== vaultKeyHex', async () => {
@@ -38,10 +41,10 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
       expect(authHashHex).not.toBe(vaultKeyHex);
     });
 
-    it('produz chaves determinísticas para mesma senha+salt', async () => {
+    it('produz chaves determinísticas para mesma senha+salt+pepper', async () => {
       const salt = await gerarSaltHex();
-      const a = await derivarChaves(SENHA, salt);
-      const b = await derivarChaves(SENHA, salt);
+      const a = await derivarChaves(SENHA, salt, 'pepper-X');
+      const b = await derivarChaves(SENHA, salt, 'pepper-X');
       expect(a.authHashHex).toBe(b.authHashHex);
       expect(a.vaultKeyHex).toBe(b.vaultKeyHex);
     });
@@ -53,6 +56,21 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
       const c = await derivarChaves(SENHA, await gerarSaltHex());
       expect(a.authHashHex).not.toBe(b.authHashHex);
       expect(a.vaultKeyHex).not.toBe(c.vaultKeyHex);
+    });
+
+    it('pepper diferente produz authHashHex e vaultKeyHex diferentes', async () => {
+      const salt = await gerarSaltHex();
+      const a = await derivarChaves(SENHA, salt, 'pepper-A');
+      const b = await derivarChaves(SENHA, salt, 'pepper-B');
+      expect(a.authHashHex).not.toBe(b.authHashHex);
+      expect(a.vaultKeyHex).not.toBe(b.vaultKeyHex);
+    });
+
+    it('pepper undefined = pepper vazio (sem peppaer ainda funciona)', async () => {
+      const salt = await gerarSaltHex();
+      const { authHashHex, vaultKeyHex } = await derivarChaves(SENHA, salt);
+      expect(authHashHex).toMatch(/^[0-9a-f]{64}$/);
+      expect(vaultKeyHex).toMatch(/^[0-9a-f]{64}$/);
     });
   });
 

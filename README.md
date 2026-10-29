@@ -36,7 +36,7 @@ O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente
 1. **Registro (`TelaAuth` + `registrarUsuario({ nome, email, senha })`)**:
    - **Política de senha forte** validada em tempo real no cadastro: mínimo de **8 caracteres**, **1 letra maiúscula**, **1 letra minúscula**, **1 número** e **1 caractere especial**.
    - Gera `salt` aleatório (16 bytes hex) via `crypto.getRandomValues`
-   - Deriva `authHashHex` e `vaultKeyHex` via **PBKDF2-SHA256** (100.000 iterações, 512 bits)
+   - Deriva `authHashHex` e `vaultKeyHex` via **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256** (512 bits)
    - `authHashHex` (64 hex chars, 256 bits, sem prefixos) → armazenado como `credencial_hash` no banco
    - `vaultKeyHex` (64 hex chars, 256 bits) → mantida apenas em memória/sessionStorage (nunca persistida)
    - A chave Gemini do usuário é **criptografada com AES-256-GCM** usando `vaultKeyHex` antes de ser salva como `gemini_key_cifrada`
@@ -56,7 +56,7 @@ O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente
 ### Web Crypto API
 
 - `gerarSaltHex()` — salt aleatório de 16 bytes
-- `derivarChaves(senha, salt)` — PBKDF2-SHA256 → `authHashHex` + `vaultKeyHex` (256 bits cada, formato opaco hex sem prefixos)
+- `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações) + **Pepper via HMAC-SHA256** → `authHashHex` + `vaultKeyHex` (256 bits cada, formato opaco hex sem prefixos PHC `$argon2`)
 - `cifrarTexto(texto, chaveHex)` — AES-256-GCM com IV aleatório por operação (ciphertext único a cada chamada)
 - `decifrarTexto(ciphertextHex, chaveHex)` — AES-256-GCM decrypt
 - `constantTimeEquals(a, b)` — comparação em tempo constante
@@ -68,10 +68,12 @@ Crie `.env.local` (ou `.env`) na raiz do projeto:
 ```env
 VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
 VITE_TURSO_AUTH_TOKEN=SEU_TOKEN_DE_LEITURA/GRAVACAO
+VITE_AUTH_PEPPER=SEU_PEPPER_ALEATORIO
 ```
 
 - `VITE_TURSO_DATABASE_URL` — URL do banco Turso (formato `libsql://...` ou `turso://...`)
 - `VITE_TURSO_AUTH_TOKEN` — token de acesso (Pipeline v2 = escopo `read`, `write`)
+- `VITE_AUTH_PEPPER` — pepper aleatório para derivação de chaves (Argon2id + HMAC-SHA256); nunca exposto ao usuário final
 
 ## Comandos
 

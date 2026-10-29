@@ -1,11 +1,11 @@
 // Zero-Knowledge Auth + AES-256-GCM vault
-// - gerarSaltHex: salt aleatório hex para PBKDF2
-// - derivarChaves: PBKDF2-SHA256 → authHashHex (64 chars) + vaultKeyHex (64 chars)
+// - gerarSaltHex: salt aleatório hex para Argon2id
+// - derivarChaves: Argon2id (via hash-wasm) + Pepper (HMAC-SHA256) → authHashHex (64 chars) + vaultKeyHex (64 chars)
 // - cifrarTexto/decifrarTexto: AES-256-GCM com IV aleatório por operação
 // - constantTimeEquals: comparação que não vaza timing
-// Web Crypto API — nunca expõe o algoritmo no hash (formato opaco)
+// Web Crypto API + hash-wasm — nunca expõe o algoritmo no hash (formato opaco)
+import { argon2id } from "hash-wasm";
 
-const ITERATIONS = 100_000;
 const SALT_BYTES = 16;
 const KEY_BYTES = 32; // 256 bits
 const IV_BYTES = 12; // GCM recomendado
@@ -36,38 +36,51 @@ interface ChavesDerivadas {
   vaultKeyHex: string;
 }
 
-/// Deriva duas chaves distintas via PBKDF2-SHA256:
+/// Aplica Pepper via HMAC-SHA256 sobre a senha antes do derive.
+/// Le o pepper do parâmetro, VITE_AUTH_PEPPER ou fallback padrão.
+async function aplicarPepper(senha: string, pepper?: string): Promise<Uint8Array> {
+  let pepperKey: string | undefined = pepper;
+  if (!pepperKey && typeof import.meta !== "undefined") {
+    pepperKey = (import.meta.env as Record<string, string | undefined> | undefined)?.VITE_AUTH_PEPPER;
+  }
+  if (!pepperKey) pepperKey = "lumi-default-pepper-v1";
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(pepperKey!),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+
+  const assinatura = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(senha));
+  return new Uint8Array(assinatura);
+}
+
+/// Deriva duas chaves distintas via Argon2id (com Pepper HMAC-SHA256):
 /// - authHashHex: hash opaco de 64 hex chars (256 bits) para autenticação
 /// - vaultKeyHex: chave de 64 hex chars (256 bits) para criptografia AES
 export async function derivarChaves(
   senha: string,
   saltHex: string,
+  pepper?: string,
 ): Promise<ChavesDerivadas> {
+  const senhaPeppered = await aplicarPepper(senha, pepper);
   const salt = hexToBuf(saltHex);
-  const senhaBuf = new TextEncoder().encode(senha);
 
-  const keyMaterial = await crypto.subtle.importKey(
-    'raw',
-    senhaBuf,
-    { name: 'PBKDF2' },
-    false,
-    ['deriveBits'],
-  );
-
-  // Derive 512 bits: primeiros 256 → authHash, próximos 256 → vaultKey
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', salt: salt as BufferSource, iterations: ITERATIONS, hash: 'SHA-256' },
-    keyMaterial,
-    512,
-  );
-
-  const bytes = new Uint8Array(bits);
-  const authBytes = bytes.slice(0, KEY_BYTES);
-  const vaultBytes = bytes.slice(KEY_BYTES, KEY_BYTES * 2);
+  const hex = await argon2id({
+    password: senhaPeppered,
+    salt,
+    parallelism: 1,
+    iterations: 3,
+    memorySize: 19456,
+    hashLength: 64,
+    outputType: "hex",
+  });
 
   return {
-    authHashHex: bufToHex(authBytes.buffer),
-    vaultKeyHex: bufToHex(vaultBytes.buffer),
+    authHashHex: hex.slice(0, 64),
+    vaultKeyHex: hex.slice(64, 128),
   };
 }
 
