@@ -1,4 +1,4 @@
-import { verifySession } from './jwt';
+import { verifySession } from './jwt.js';
 
 // Helpers de resposta HTTP para as rotas serverless Web API
 export function json(data: unknown, status = 200, headers: HeadersInit = {}): Response {

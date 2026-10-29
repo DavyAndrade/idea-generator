@@ -1,6 +1,6 @@
-import { json, errorResponse, createApiHandler } from '../_lib/http';
-import { query, execute, initTursoServer } from '../_lib/turso';
-import { hashToken } from '../_lib/tokens';
+import { json, errorResponse, createApiHandler } from '../_lib/http.js';
+import { query, execute, initTursoServer } from '../_lib/turso.js';
+import { hashToken } from '../_lib/tokens.js';
 
 export async function POST(req: Request): Promise<Response> {
   try {

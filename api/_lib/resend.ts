@@ -13,7 +13,7 @@ interface ResendResponse {
   error?: string;
 }
 
-import { ensureEnv } from './turso';
+import { ensureEnv } from './turso.js';
 
 const RESEND_BASE = 'https://api.resend.com/emails';
 

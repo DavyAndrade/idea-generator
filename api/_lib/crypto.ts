@@ -1,5 +1,5 @@
 import { argon2id, argon2Verify } from 'hash-wasm';
-import { ensureEnv } from './turso';
+import { ensureEnv } from './turso.js';
 
 const SALT_BYTES = 16;
 

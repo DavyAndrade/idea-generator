@@ -1,6 +1,6 @@
-import { json, errorResponse, createApiHandler } from '../_lib/http';
-import { query, execute, initTursoServer } from '../_lib/turso';
-import { gerarRecoveryCode, aplicarPepper } from '../_lib/crypto';
+import { json, errorResponse, createApiHandler } from '../_lib/http.js';
+import { query, execute, initTursoServer } from '../_lib/turso.js';
+import { gerarRecoveryCode, aplicarPepper } from '../_lib/crypto.js';
 import { createHash } from 'node:crypto';
 
 // Resend API integration

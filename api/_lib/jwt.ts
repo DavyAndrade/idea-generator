@@ -1,5 +1,5 @@
 // Gerenciamento de tokens de sessão seguros via HMAC-SHA256 com Web Crypto nativo (Zero dependências)
-import { ensureEnv } from './turso';
+import { ensureEnv } from './turso.js';
 
 interface SessionPayload {
   userId: number;

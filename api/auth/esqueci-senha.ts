@@ -1,8 +1,8 @@
-import { json, errorResponse, createApiHandler } from '../_lib/http';
-import { query, execute, initTursoServer } from '../_lib/turso';
-import { enviarEmail } from '../_lib/resend';
-import { gerarSaltHex } from '../_lib/crypto';
-import { gerarTokenRecuperacao, hashToken } from '../_lib/tokens';
+import { json, errorResponse, createApiHandler } from '../_lib/http.js';
+import { query, execute, initTursoServer } from '../_lib/turso.js';
+import { enviarEmail } from '../_lib/resend.js';
+import { gerarSaltHex } from '../_lib/crypto.js';
+import { gerarTokenRecuperacao, hashToken } from '../_lib/tokens.js';
 
 export async function POST(req: Request): Promise<Response> {
   try {

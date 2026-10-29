@@ -1,5 +1,5 @@
-import { json, errorResponse, authenticateRequest, createApiHandler } from '../_lib/http';
-import { query, initTursoServer } from '../_lib/turso';
+import { json, errorResponse, authenticateRequest, createApiHandler } from '../_lib/http.js';
+import { query, initTursoServer } from '../_lib/turso.js';
 
 export async function GET(req: Request): Promise<Response> {
   try {

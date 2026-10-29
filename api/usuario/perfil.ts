@@ -1,5 +1,5 @@
-import { json, errorResponse, authenticateRequest, createApiHandler } from '../_lib/http';
-import { execute, initTursoServer } from '../_lib/turso';
+import { json, errorResponse, authenticateRequest, createApiHandler } from '../_lib/http.js';
+import { execute, initTursoServer } from '../_lib/turso.js';
 
 export async function PATCH(req: Request): Promise<Response> {
   try {

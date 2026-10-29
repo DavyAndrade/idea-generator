@@ -1,7 +1,7 @@
-import { json, errorResponse, createApiHandler } from '../_lib/http';
-import { query, initTursoServer } from '../_lib/turso';
-import { gerarSaltHex, derivarArgon2idPHC } from '../_lib/crypto';
-import { signSession } from '../_lib/jwt';
+import { json, errorResponse, createApiHandler } from '../_lib/http.js';
+import { query, initTursoServer } from '../_lib/turso.js';
+import { gerarSaltHex, derivarArgon2idPHC } from '../_lib/crypto.js';
+import { signSession } from '../_lib/jwt.js';
 
 export async function POST(req: Request): Promise<Response> {
   try {
