@@ -45,4 +45,5 @@ export interface UsuarioSessao {
   nome: string;
   email: string;
   vaultKeyHex: string;
+  token?: string;
 }

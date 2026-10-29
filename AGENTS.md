@@ -31,33 +31,56 @@ Todos na raiz do repositório:
 
 ```
 src/
-  lib/            # Integração: turso.ts, gemini.ts, crypto.ts, storage.ts, utils.ts
+  lib/            # Integração: api-client.ts (fetchApi → /api/* BFF), gemini.ts, crypto.ts, storage.ts, utils.ts
   components/     # Telas e widgets reusáveis
   components/ui/  # Componentes shadcn/ui
   types.ts        # Entidade Ideia, UsuarioSessao, tipos e constantes
   App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
+api/              # Serverless BFF: api/auth/*, api/ideias/*, api/usuario/* + api/_lib/
 ```
 
-**Fluxo:** tela → `lib/storage.ts` (auth + CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
-Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts`, `lib/gemini.ts` ou `lib/crypto.ts`.
+**Fluxo:** tela → `lib/storage.ts` (via `fetchApi` → `/api/*` BFF) → TursoDB (via BFF). Gemini REST direto no BFF ou via BYOK do usuário.
+Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts` ou `lib/gemini.ts`. O BFF em `api/` é o único que fala com o TursoDB.
 
 ## Registro/Login Zero-Knowledge
 
 Zero-knowledge authentication via Web Crypto API (nunca expõe algoritmo no hash).
 
 - `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256**, produzindo `authHashHex` no formato **PHC canônico** `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP, desestimula atacantes offline) + `vaultKeyHex` (64 hex chars / 256 bits para AES-256-GCM), `verificarArgon2id(senhaPeppered, phcHash)` para verificação de login, `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
-- `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `atualizarNomeUsuario()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
+- `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `atualizarNomeUsuario()`, `lerChave()` / `salvarChave()` — comunica-se com o BFF via `fetchApi()` (`lib/api-client.ts`) para rotas `/api/auth/*` e `/api/usuario/*`; autenticado = AES-256-GCM cifrada, legado (sem sessão) = `localStorage`
 - `components/tela-auth.tsx`: exige senha forte no cadastro (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial) com checklist em tempo real.
 
-## TursoDB
+## Serverless BFF (Backend For Frontend)
 
-Tabelas (criadas automaticamente por `initTurso()`):
+O frontend (PWA) não fala diretamente com o TursoDB. Em vez disso, comunica-se com um Serverless BFF exposto via rotas `/api/*` (proxyeado pelo Vite em dev). O BFF é o único cliente do TursoDB — o frontend nunca expõe tokens de banco.
+
+### Rotas BFF (`/api/*`)
+
+| Rota | Método | Auth | Descrição |
+|---|---|---|---|
+| `/api/auth/registrar` | POST | — | Registro: valida senha forte, gera salt, cria `credencial_hash` PHC, retorna `token` (JWT) + `saltHex` para derivação local do `vaultKey` |
+| `/api/auth/login` | POST | — | Login: verifica senha via `verificarArgon2id`, retorna `token` + `saltHex` + `geminiKeyCifrada` (cifrada) |
+| `/api/auth/sessao` | GET | — | Verifica/valida sessão retornando usuário + chave Gemini cifrada |
+| `/api/usuario/perfil` | PATCH | ✅ | Atualiza `nome` do usuário |
+| `/api/usuario/config` | GET | ✅ | Retorna `modelo` e `geminiKeyCifrada` do usuário |
+| `/api/usuario/config` | PATCH | ✅ | Atualiza `modelo` e/ou `geminiKeyCifrada` |
+| `/api/ideias` | GET | ✅ | Lista ideias do usuário (filtrado por `usuario_id`) |
+| `/api/ideias` | POST | ✅ | Cria ideia (campos E2E cifrados: `descricao`, `tema`, `promptUsado`; `titulo` e `categoria` em texto claro) |
+| `/api/ideias` | PATCH | ✅ | Alterna `favorito` de uma ideia |
+| `/api/ideias?id=<id>` | DELETE | ✅ | Exclui ideia (isolada por `usuario_id`) |
+
+### Proxy dev (Vite)
+
+`vite-plugin-serverless.ts` intercepta `/api/*` durante `vite dev` e despacha para os handlers em `api/` via dynamic import. Em produção, as rotas `/api/*` são servidas por uma plataforma serverless (Vercel Functions, Netlify, Cloudflare Workers).
+
+### Variáveis de ambiente
+
+- **Servidor (BFF)**: `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `AUTH_PEPPER` (ou `VITE_AUTH_PEPPER`), `JWT_SECRET` — nunca expostas ao browser
+- **Frontend (PWA)**: nenhum token de banco — apenas `VITE_AUTH_PEPPER` não é mais necessário no cliente
+
+### Tabelas (criadas pelo BFF via `initTursoServer()`)
 
 ```sql
-CREATE TABLE configuracoes (
-  chave TEXT PRIMARY KEY,
-  valor TEXT NOT NULL
-);
 CREATE TABLE usuarios (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
@@ -80,11 +103,11 @@ CREATE TABLE ideias (
 );
 ```
 
-- `gemini_api_key` + `gemini_modelo` → tabela `configuracoes` (modo legado) **ou** `usuarios.gemini_key_cifrada` + `usuarios.gemini_modelo` (modo autenticado)
-- Ideias → tabela `ideias` com `usuario_id INTEGER NOT NULL REFERENCES usuarios(id)` — quando há sessão ativa, `salvarIdeia`, `listarIdeias`, `excluirIdeia` e `alternarFavorito` filtram isolam por `usuario_id`; modo legado (sem login) não filtra
-- Criptografia E2E de ideias: quando autenticado, `salvarIdeia` cifra `descricao`, `tema` e `promptUsado` com AES-256-GCM (`vaultKeyHex`); `titulo` e `categoria` ficam em texto claro para busca/indexação — `listarIdeias` decifra automaticamente ao ler
+- `gemini_key_cifrada` + `gemini_modelo` → tabela `usuarios` (modo autenticado via BFF)
+- Ideias → tabela `ideias` com `usuario_id INTEGER NOT NULL REFERENCES usuarios(id)` — todas as operações CRUD via BFF filtram por `usuario_id`
+- Criptografia E2E de ideias: `salvarIdeia` cifra `descricao`, `tema` e `promptUsado` com AES-256-GCM (`vaultKeyHex`); `titulo` e `categoria` ficam em texto claro — `listarIdeias` decifra automaticamente ao ler
 - Categorias: `CATEGORIAS` em `types.ts` define `'App'`, `'Negócio'`, `'Conteúdo'`, `'Open Source'`, `'Hobby'`
-- Histórico: `listarIdeias({ somenteFavoritas, busca, categoria })` — filtra por categoria e/ou busca textual (`LIKE` no SQL); `tela-historico.tsx` oferece organização e filtro por categorias + Somente Favoritas
+- Histórico: `listarIdeias({ somenteFavoritas, busca, categoria })` — filtragem em memória após decifrar (ciphertext não é indexável no SQL)
 
 ## Gemini integration
 
@@ -97,10 +120,21 @@ CREATE TABLE ideias (
 
 ## Variáveis de ambiente
 
+### Frontend (PWA)
+
 ```env
-VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
-VITE_TURSO_AUTH_TOKEN=SEU_TOKEN
 VITE_AUTH_PEPPER=SEU_PEPPER_ALEATORIO
+```
+
+O PWA não precisa de credenciais de banco — apenas o pepper (fallback de desenvolvimento).
+
+### BFF / Servidor (`api/`)
+
+```env
+TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
+TURSO_AUTH_TOKEN=SEU_TOKEN
+AUTH_PEPPER=SEU_PEPPER_ALEATORIO
+JWT_SECRET=SEU_SEGREDO_JWT
 ```
 
 ## Testing

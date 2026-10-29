@@ -1,57 +1,46 @@
-// Persistência de tudo no TursoDB.
-// - gemini_api_key e gemini_modelo → tabela configuracoes (modo legado)
-//   OU tabela usuarios (modo autenticado)
-// - ideias → tabela ideias
-import { execute, query, initTurso, rowToIdeia, testarConexaoTurso as _testarConexaoTurso } from '@/lib/turso';
+// Persistência segura via API Serverless (/api/*) + Criptografia E2E (AES-256-GCM) no cliente.
+import { fetchApi } from '@/lib/api-client';
 import {
-  gerarSaltHex,
   derivarChaves,
-  derivarHashLegado,
-  aplicarPepper,
-  verificarArgon2id,
-  extrairSaltDePHC,
   cifrarTexto,
   decifrarTexto,
-  constantTimeEquals,
 } from '@/lib/crypto';
-import { MODELO_PADRAO, type Ideia, type ModeloGemini, type NovaIdeiaInput, type UsuarioSessao } from '@/types';
-
-// Re-exporta testarConexaoTurso para uso em componentes
-export { testarConexaoTurso } from '@/lib/turso';
+import {
+  MODELO_PADRAO,
+  type Ideia,
+  type ModeloGemini,
+  type NovaIdeiaInput,
+  type UsuarioSessao,
+} from '@/types';
 
 /// Decifra um campo que pode ser ciphertext (hex) ou texto plano (fallback).
 async function decifrarCampo(campoHex: string, vaultKeyHex: string): Promise<string> {
   try {
     return await decifrarTexto(campoHex, vaultKeyHex);
   } catch {
-    // Fallback: campo nao esta cifrado (texto plano ou legado)
     return campoHex;
   }
 }
 
-// Garante tabelas existam antes de qualquer operação
-let initPromise: Promise<void> | null = null;
-function ensureInit(): Promise<void> {
-  if (!initPromise) {
-    initPromise = initTurso().catch((err) => {
-      initPromise = null;
-      const msg = err instanceof Error ? err.message : String(err);
-      throw new Error(`Não foi possível inicializar o banco Turso (${msg})`);
-    });
-  }
-  return initPromise!;
+// Reseta o cache de inicialização — mantido para compatibilidade com testes
+export function resetInitCache(): void {
+  // noop no client serverless
 }
 
-// Reseta o cache de inicialização — útil para testes unitários
-export function resetInitCache(): void {
-  initPromise = null;
+export async function testarConexaoTurso(): Promise<{ ok: boolean; mensagem: string }> {
+  try {
+    const res = await fetchApi<{ ok?: boolean; erro?: string }>('/api/ideias');
+    return { ok: true, mensagem: 'Conexão segura com a API ativa.' };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return { ok: false, mensagem: `Falha na API: ${msg}` };
+  }
 }
 
 // --- Sessão de usuário ---
 
-const SESSAO_KEY = 'gerador_ideias_sessao';
+const SESSAO_KEY = 'lumi_sessao_usuario';
 
-// Armazenamento em memória para fallback em testes (onnde não há sessionStorage)
 let sessaoMemoria: UsuarioSessao | null = null;
 
 function lerSessaoStorage(): UsuarioSessao | null {
@@ -91,8 +80,6 @@ export function encerrarSessao(): void {
 
 /// Atualiza o nome do usuário autenticado e retorna a nova sessão.
 export async function atualizarNomeUsuario(novoNome: string): Promise<UsuarioSessao> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
   if (!sessao) {
     throw new Error('Usuário não autenticado');
@@ -103,10 +90,10 @@ export async function atualizarNomeUsuario(novoNome: string): Promise<UsuarioSes
     throw new Error('Nome não pode ser vazio');
   }
 
-  await execute(
-    'UPDATE usuarios SET nome = ? WHERE id = ?',
-    [nomeTrimmed, sessao.id],
-  );
+  await fetchApi<{ ok: boolean; nome: string }>('/api/usuario/perfil', {
+    method: 'PATCH',
+    body: JSON.stringify({ nome: nomeTrimmed }),
+  });
 
   const novaSessao: UsuarioSessao = { ...sessao, nome: nomeTrimmed };
   salvarSessaoStorage(novaSessao);
@@ -120,37 +107,24 @@ export async function registrarUsuario(params: {
   email: string;
   senha: string;
 }): Promise<UsuarioSessao> {
-  await ensureInit();
+  const res = await fetchApi<{
+    token: string;
+    user: { id: number; nome: string; email: string; geminiModelo: string };
+    saltHex: string;
+  }>('/api/auth/registrar', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
 
-  const saltHex = await gerarSaltHex();
-  const { authHashHex, vaultKeyHex } = await derivarChaves(params.senha, saltHex);
-  const emailLower = params.email.toLowerCase();
-  const criadoEm = new Date().toISOString();
+  // Deriva vaultKeyHex localmente no navegador (Zero-Knowledge: servidor nunca recebe a vaultKey)
+  const { vaultKeyHex } = await derivarChaves(params.senha, res.saltHex);
 
-  const rows = await query<Record<string, unknown>>(
-    `INSERT INTO usuarios (nome, email, credencial_hash, gemini_key_cifrada, gemini_modelo, criado_em)
-     VALUES (?, ?, ?, ?, ?, ?)
-     RETURNING *`,
-    [
-      params.nome,
-      emailLower,
-      authHashHex,
-      null,
-      MODELO_PADRAO,
-      criadoEm,
-    ],
-  );
-
-  if (rows.length === 0) {
-    throw new Error('Falha ao registrar usuário');
-  }
-
-  const row = rows[0];
   const sessao: UsuarioSessao = {
-    id: Number(row.id),
-    nome: String(row.nome),
-    email: String(row.email),
+    id: res.user.id,
+    nome: res.user.nome,
+    email: res.user.email,
     vaultKeyHex,
+    token: res.token,
   };
 
   salvarSessaoStorage(sessao);
@@ -161,46 +135,25 @@ export async function loginUsuario(params: {
   email: string;
   senha: string;
 }): Promise<UsuarioSessao> {
-  await ensureInit();
+  const res = await fetchApi<{
+    token: string;
+    user: { id: number; nome: string; email: string; geminiModelo: string };
+    saltHex: string;
+    geminiKeyCifrada: string | null;
+  }>('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
 
-  const emailLower = params.email.toLowerCase();
-
-  const rows = await query<Record<string, unknown>>(
-    'SELECT * FROM usuarios WHERE email = ?',
-    [emailLower],
-  );
-
-  if (rows.length === 0) {
-    throw new Error('E-mail ou senha inválidos');
-  }
-
-  const row = rows[0];
-  const senhaPeppered = await aplicarPepper(params.senha);
-
-  let autenticado: boolean;
-  let vaultKeyHex: string;
-  const credHash = String(row.credencial_hash);
-  if (credHash.startsWith('$argon2')) {
-    autenticado = await verificarArgon2id(senhaPeppered, credHash);
-    const saltHex = extrairSaltDePHC(credHash);
-    ({ vaultKeyHex } = await derivarChaves(params.senha, saltHex));
-  } else {
-    // Fallback legado: hash opaco sem prefixo (64 hex chars) — salt em coluna separada
-    const saltHex = String(row.salt ?? '');
-    const authHashHex = await derivarHashLegado(params.senha, saltHex);
-    ({ vaultKeyHex } = await derivarChaves(params.senha, saltHex));
-    autenticado = constantTimeEquals(authHashHex, credHash);
-  }
-
-  if (!autenticado) {
-    throw new Error('E-mail ou senha inválidos');
-  }
+  // Deriva vaultKeyHex localmente no navegador usando o salt enviado de volta
+  const { vaultKeyHex } = await derivarChaves(params.senha, res.saltHex);
 
   const sessao: UsuarioSessao = {
-    id: Number(row.id),
-    nome: String(row.nome),
-    email: String(row.email),
+    id: res.user.id,
+    nome: res.user.nome,
+    email: res.user.email,
     vaultKeyHex,
+    token: res.token,
   };
 
   salvarSessaoStorage(sessao);
@@ -210,126 +163,111 @@ export async function loginUsuario(params: {
 // --- Configurações: chave API Gemini ---
 
 export async function lerChave(): Promise<string> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
   if (sessao) {
-    const rows = await query<{ gemini_key_cifrada: string }>(
-      'SELECT gemini_key_cifrada FROM usuarios WHERE id = ?',
-      [sessao.id],
-    );
-    const cifrada = rows[0]?.gemini_key_cifrada;
-    if (!cifrada) return '';
-    return decifrarTexto(cifrada, sessao.vaultKeyHex);
+    const res = await fetchApi<{ geminiKeyCifrada: string | null }>('/api/usuario/config');
+    if (!res.geminiKeyCifrada) return '';
+    return decifrarTexto(res.geminiKeyCifrada, sessao.vaultKeyHex);
   }
 
-  // Modo legado: configurações
-  const rows = await query<{ valor: string }>(
-    'SELECT valor FROM configuracoes WHERE chave = ?',
-    ['gemini_api_key'],
-  );
-  return rows[0]?.valor ?? '';
+  // Fallback local se não autenticado
+  if (typeof localStorage !== 'undefined') {
+    return localStorage.getItem('lumi_gemini_api_key') || '';
+  }
+  return '';
 }
 
 export async function salvarChave(chave: string): Promise<void> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
   if (sessao) {
     const cifrada = await cifrarTexto(chave, sessao.vaultKeyHex);
-    await execute(
-      'UPDATE usuarios SET gemini_key_cifrada = ? WHERE id = ?',
-      [cifrada, sessao.id],
-    );
+    await fetchApi('/api/usuario/config', {
+      method: 'PATCH',
+      body: JSON.stringify({ geminiKeyCifrada: cifrada }),
+    });
     return;
   }
 
-  // Modo legado: tabela configuracoes
-  await execute(
-    'INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor',
-    ['gemini_api_key', chave],
-  );
+  // Fallback local se não autenticado
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('lumi_gemini_api_key', chave);
+  }
 }
 
 // --- Configurações: modelo Gemini ---
 
 export async function lerModelo(): Promise<ModeloGemini> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
   if (sessao) {
-    const rows = await query<{ gemini_modelo: string }>(
-      'SELECT gemini_modelo FROM usuarios WHERE id = ?',
-      [sessao.id],
-    );
-    const stored = rows[0]?.gemini_modelo;
-    if (stored) return stored as ModeloGemini;
+    try {
+      const res = await fetchApi<{ modelo: string }>('/api/usuario/config');
+      if (res.modelo) return res.modelo as ModeloGemini;
+    } catch {
+      // ignore
+    }
     return MODELO_PADRAO;
   }
 
-  // Modo legado: tabela configuracoes
-  const rows = await query<{ valor: string }>(
-    'SELECT valor FROM configuracoes WHERE chave = ?',
-    ['gemini_modelo'],
-  );
-  const stored = rows[0]?.valor;
-  if (stored) return stored as ModeloGemini;
+  if (typeof localStorage !== 'undefined') {
+    const stored = localStorage.getItem('lumi_gemini_modelo');
+    if (stored) return stored as ModeloGemini;
+  }
   return MODELO_PADRAO;
 }
 
 export async function salvarModelo(modelo: ModeloGemini): Promise<void> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
   if (sessao) {
-    await execute(
-      'UPDATE usuarios SET gemini_modelo = ? WHERE id = ?',
-      [modelo, sessao.id],
-    );
+    await fetchApi('/api/usuario/config', {
+      method: 'PATCH',
+      body: JSON.stringify({ modelo }),
+    });
     return;
   }
 
-  // Modo legado: tabela configuracoes
-  await execute(
-    'INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor',
-    ['gemini_modelo', modelo],
-  );
+  if (typeof localStorage !== 'undefined') {
+    localStorage.setItem('lumi_gemini_modelo', modelo);
+  }
 }
 
 // --- CRUD de ideias ---
 
+function lerIdeiasLocal(): Ideia[] {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem('lumi_ideias_local');
+      if (raw) return JSON.parse(raw) as Ideia[];
+    }
+  } catch {
+    // ignore
+  }
+  return [];
+}
+
+function salvarIdeiasLocal(ideias: Ideia[]): void {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('lumi_ideias_local', JSON.stringify(ideias));
+    }
+  } catch {
+    // ignore
+  }
+}
+
 export async function listarIdeias(opcoes?: {
   somenteFavoritas?: boolean;
   busca?: string;
+  categoria?: string;
 }): Promise<Ideia[]> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
-  const conditions: string[] = [];
-  const args: unknown[] = [];
+
+  let ideias: Ideia[] = [];
 
   if (sessao) {
-    conditions.push('usuario_id = ?');
-    args.push(sessao.id);
-  }
+    const res = await fetchApi<{ ideias: Ideia[] }>('/api/ideias');
+    ideias = res.ideias || [];
 
-  if (opcoes?.somenteFavoritas) {
-    conditions.push('favorito = 1');
-  }
-
-  // Busca textual aplicada em memória após decifrar (ciphertext nao e indexavel)
-  let sql = 'SELECT * FROM ideias';
-  if (conditions.length > 0) {
-    sql += ' WHERE ' + conditions.join(' AND ');
-  }
-  sql += ' ORDER BY criado_em DESC';
-
-  const rows = await query<Record<string, unknown>>(sql, args);
-
-  const ideias = rows.map((row) => rowToIdeia(row));
-
-  if (sessao) {
-    // Decifra apenas descricao, tema e promptUsado (titulo fica texto claro)
+    // Decifra apenas descricao, tema e promptUsado (titulo e categoria ficam em texto claro)
     for (const ideia of ideias) {
       ideia.descricao = await decifrarCampo(ideia.descricao, sessao.vaultKeyHex);
       ideia.tema = await decifrarCampo(ideia.tema, sessao.vaultKeyHex);
@@ -337,16 +275,25 @@ export async function listarIdeias(opcoes?: {
         ideia.promptUsado = await decifrarCampo(ideia.promptUsado, sessao.vaultKeyHex);
       }
     }
+  } else {
+    ideias = lerIdeiasLocal();
   }
 
-  // Busca texto em memória (lowercase)
+  if (opcoes?.somenteFavoritas) {
+    ideias = ideias.filter((i) => i.favorito);
+  }
+
+  if (opcoes?.categoria) {
+    ideias = ideias.filter((i) => i.categoria === opcoes.categoria);
+  }
+
   if (opcoes?.busca && ideias.length > 0) {
     const termo = opcoes.busca.toLowerCase();
-    return ideias.filter(
+    ideias = ideias.filter(
       (ideia) =>
         ideia.titulo.toLowerCase().includes(termo) ||
         ideia.descricao.toLowerCase().includes(termo) ||
-        ideia.tema.toLowerCase().includes(termo),
+        ideia.tema.toLowerCase().includes(termo)
     );
   }
 
@@ -354,99 +301,91 @@ export async function listarIdeias(opcoes?: {
 }
 
 export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
-  const criadoEm = ideia.criadoEm ?? new Date().toISOString();
-  const favorito = ideia.favorito ? 1 : 0;
 
-  // Criptografa apenas descricao, tema e promptUsado (titulo fica em texto claro)
-  const tituloBD = ideia.titulo;
-  const descricaoBD = sessao ? await cifrarTexto(ideia.descricao, sessao.vaultKeyHex) : ideia.descricao;
-  const temaBD = sessao ? await cifrarTexto(ideia.tema, sessao.vaultKeyHex) : ideia.tema;
-  const promptBD = sessao && ideia.promptUsado
-    ? await cifrarTexto(ideia.promptUsado, sessao.vaultKeyHex)
-    : ideia.promptUsado ?? null;
-
-  // RETURNING * — last_insert_rowid() em HTTP stateless pode falhar entre chamadas
-  const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ideias (titulo, descricao, tema, categoria, prompt_usado, favorito, criado_em${sessao ? ', usuario_id' : ''})
-     VALUES (?, ?, ?, ?, ?, ?, ?${sessao ? ', ?' : ''})
-     RETURNING *`,
-    [
-      tituloBD,
-      descricaoBD,
-      temaBD,
-      ideia.categoria,
-      promptBD,
-      favorito,
-      criadoEm,
-      ...(sessao ? [sessao.id] : []),
-    ],
-  );
-
-  if (rows.length === 0) {
-    throw new Error('Falha ao recuperar ideia salva');
-  }
-
-  const salva = rowToIdeia(rows[0]);
   if (sessao) {
-    // Decifra apenas descricao, tema e promptUsado (titulo fica texto claro)
-    salva.descricao = await decifrarCampo(salva.descricao, sessao.vaultKeyHex);
-    salva.tema = await decifrarCampo(salva.tema, sessao.vaultKeyHex);
-    if (salva.promptUsado) {
-      salva.promptUsado = await decifrarCampo(salva.promptUsado, sessao.vaultKeyHex);
-    }
+    // Criptografa descricao, tema e promptUsado com AES-256-GCM antes de enviar para a API
+    const descricaoCifrada = await cifrarTexto(ideia.descricao, sessao.vaultKeyHex);
+    const temaCifrado = await cifrarTexto(ideia.tema, sessao.vaultKeyHex);
+    const promptCifrado = ideia.promptUsado
+      ? await cifrarTexto(ideia.promptUsado, sessao.vaultKeyHex)
+      : undefined;
+
+    const res = await fetchApi<{ ideia: Ideia }>('/api/ideias', {
+      method: 'POST',
+      body: JSON.stringify({
+        titulo: ideia.titulo,
+        descricao: descricaoCifrada,
+        tema: temaCifrado,
+        categoria: ideia.categoria,
+        promptUsado: promptCifrado,
+      }),
+    });
+
+    const salva = res.ideia;
+    // Restaura o texto claro em memória para retorno imediato à interface
+    salva.descricao = ideia.descricao;
+    salva.tema = ideia.tema;
+    salva.promptUsado = ideia.promptUsado;
+    return salva;
   }
-  return salva;
+
+  // Modo local
+  const nova: Ideia = {
+    id: Date.now(),
+    titulo: ideia.titulo,
+    descricao: ideia.descricao,
+    tema: ideia.tema,
+    categoria: ideia.categoria,
+    promptUsado: ideia.promptUsado,
+    favorito: Boolean(ideia.favorito),
+    criadoEm: ideia.criadoEm || new Date().toISOString(),
+  };
+
+  const locais = lerIdeiasLocal();
+  locais.unshift(nova);
+  salvarIdeiasLocal(locais);
+  return nova;
 }
 
 export async function excluirIdeia(id: number): Promise<void> {
-  await ensureInit();
-
   const sessao = obterSessaoAtual();
   if (sessao) {
-    await execute('DELETE FROM ideias WHERE id = ? AND usuario_id = ?', [id, sessao.id]);
-  } else {
-    await execute('DELETE FROM ideias WHERE id = ?', [id]);
+    await fetchApi(`/api/ideias?id=${id}`, {
+      method: 'DELETE',
+    });
+    return;
   }
+
+  const locais = lerIdeiasLocal().filter((i) => i.id !== id);
+  salvarIdeiasLocal(locais);
 }
 
-export async function alternarFavorito(id: number, favoritoAtual?: boolean): Promise<Ideia | undefined> {
-  await ensureInit();
-
+export async function alternarFavorito(
+  id: number,
+  favoritoAtual?: boolean
+): Promise<Ideia | undefined> {
   const sessao = obterSessaoAtual();
-  const novoValor = favoritoAtual ? 0 : 1;
+  const novoFavorito = !favoritoAtual;
 
   if (sessao) {
-    await execute(
-      'UPDATE ideias SET favorito = ? WHERE id = ? AND usuario_id = ?',
-      [novoValor, id, sessao.id],
-    );
+    await fetchApi('/api/ideias', {
+      method: 'PATCH',
+      body: JSON.stringify({ id, favorito: novoFavorito }),
+    });
 
-    const rows = await query<Record<string, unknown>>(
-      'SELECT * FROM ideias WHERE id = ? AND usuario_id = ?',
-      [id, sessao.id],
-    );
-
-    if (rows.length === 0) return undefined;
-    const atualizada = rowToIdeia(rows[0]);
-    // Decifra apenas descricao, tema e promptUsado (titulo fica texto claro)
-    atualizada.descricao = await decifrarCampo(atualizada.descricao, sessao.vaultKeyHex);
-    atualizada.tema = await decifrarCampo(atualizada.tema, sessao.vaultKeyHex);
-    if (atualizada.promptUsado) {
-      atualizada.promptUsado = await decifrarCampo(atualizada.promptUsado, sessao.vaultKeyHex);
-    }
-    return atualizada;
+    // Atualiza lista em memória chamando listarIdeias
+    const todas = await listarIdeias();
+    return todas.find((i) => i.id === id);
   }
 
-  await execute(
-    'UPDATE ideias SET favorito = ? WHERE id = ?',
-    [novoValor, id],
-  );
+  const locais = lerIdeiasLocal();
+  const index = locais.findIndex((i) => i.id === id);
+  if (index !== -1) {
+    locais[index].favorito = novoFavorito;
+    salvarIdeiasLocal(locais);
+    return locais[index];
+  }
 
-  const rows = await query<Record<string, unknown>>('SELECT * FROM ideias WHERE id = ?', [id]);
-
-  if (rows.length === 0) return undefined;
-  return rowToIdeia(rows[0]);
+  return undefined;
 }

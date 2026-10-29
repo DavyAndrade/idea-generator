@@ -17,17 +17,18 @@ Google AI Studio, protegida com criptografia ponta a ponta (`AES-256-GCM`).
 
 ```
 src/
-  lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), crypto.ts (Web Crypto), storage.ts (auth + CRUD), utils.ts
-  components/     # TelaAuth, TelaGerar, TelaHistorico (busca + filtro categoria + favoritas), TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
+  lib/            # Integração: api-client.ts (fetchApi → /api/* BFF), gemini.ts (REST), crypto.ts (Web Crypto), storage.ts (auth + CRUD), utils.ts
+  components/     # TelaAuth, TelaGerar, TelaHistorico, TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
   components/ui/  # shadcn/ui (Badge, Button, Card, Input)
   types.ts        # Ideia, UsuarioSessao, Categoria, ModeloGemini, constantes
   App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
   main.tsx        # Entry point React 19
+api/              # Serverless BFF: api/auth/*, api/ideias/*, api/usuario/* + api/_lib/
 public/           # manifest.webmanifest, sw.js, icon.svg
 ```
 
-**Fluxo:** tela → `lib/storage.ts` (auth + CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
-Não há backend próprio — o app fala direto com Gemini e Turso.
+**Fluxo:** tela → `lib/storage.ts` (via `fetchApi` → `/api/*` BFF) → TursoDB (via BFF). Gemini REST direto.
+Não há backend próprio — o PWA fala com o BFF (`/api/*`) que por sua vez fala com TursoDB. O BFF é o único cliente do TursoDB: tokens de banco nunca são expostos ao browser.
 
 ## Registro/Login Zero-Knowledge
 
@@ -72,17 +73,31 @@ A tela de Histórico (`tela-historico.tsx`) permite organizar e filtrar as ideia
 
 ## Variáveis de ambiente
 
-Crie `.env.local` (ou `.env`) na raiz do projeto:
+### Frontend (PWA — `.env.local`)
+
+O PWA **não** requer credenciais de banco. Apenas o pepper (opcional, usado como fallback de desenvolvimento):
 
 ```env
-VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
-VITE_TURSO_AUTH_TOKEN=SEU_TOKEN_DE_LEITURA/GRAVACAO
 VITE_AUTH_PEPPER=SEU_PEPPER_ALEATORIO
 ```
 
-- `VITE_TURSO_DATABASE_URL` — URL do banco Turso (formato `libsql://...` ou `turso://...`)
-- `VITE_TURSO_AUTH_TOKEN` — token de acesso (Pipeline v2 = escopo `read`, `write`)
-- `VITE_AUTH_PEPPER` — pepper aleatório para derivação de chaves (Argon2id + HMAC-SHA256); nunca exposto ao usuário final
+- `VITE_AUTH_PEPPER` — pepper aleatório para derivação de chaves (Argon2id + HMAC-SHA256); usado apenas como fallback se `AUTH_PEPPER` do servidor não estiver definido
+
+### BFF / Servidor (`api/`)
+
+O BFF requer credenciais de servidor (nunca expostas ao browser):
+
+```env
+TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
+TURSO_AUTH_TOKEN=SEU_TOKEN_DE_LEITURA/GRAVACAO
+AUTH_PEPPER=SEU_PEPPER_ALEATORIO
+JWT_SECRET=SEU_SEGREDO_JWT
+```
+
+- `TURSO_DATABASE_URL` — URL do banco Turso (formato `libsql://...`)
+- `TURSO_AUTH_TOKEN` — token de acesso do Turso (escopo `read`/`write`)
+- `AUTH_PEPPER` — pepper aleatório para HMAC-SHA256 antes do Argon2id
+- `JWT_SECRET` — segredo para assinatura de tokens de sessão (JWT HS256, 30 dias de expiração)
 
 ## Comandos
 
