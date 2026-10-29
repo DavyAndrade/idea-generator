@@ -3,12 +3,14 @@ import { Sparkles, History, Settings } from "lucide-react";
 
 import { AppBar } from "./components/app-bar";
 import { BannerSemChave } from "./components/banner-sem-chave";
+import { TelaAuth } from "./components/tela-auth";
 import { TelaGerar } from "./components/tela-gerar";
 import { TelaHistorico } from "./components/tela-historico";
 import { TelaConfiguracao } from "./components/tela-configuracao";
+import { obterSessaoAtual, encerrarSessao } from "./lib/storage";
 import { lerChave, lerModelo } from "./lib/storage";
 import { MODELO_PADRAO } from "./types";
-import type { ModeloGemini } from "./types";
+import type { ModeloGemini, UsuarioSessao } from "./types";
 
 const ABAS = [
   { id: 0, label: "Gerar", icon: Sparkles },
@@ -24,6 +26,9 @@ export function App() {
   const [chave, setChave] = useState("");
   const [modelo, setModelo] = useState<ModeloGemini>(MODELO_PADRAO);
   const [recarregarHistorico, setRecarregarHistorico] = useState(0);
+  const [sessao, setSessao] = useState<UsuarioSessao | null>(
+    () => obterSessaoAtual(),
+  );
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
@@ -47,10 +52,37 @@ export function App() {
   const recarregarHistoricoHandler = () =>
     setRecarregarHistorico((n) => n + 1);
 
+  const handleLogout = () => {
+    encerrarSessao();
+    setSessao(null);
+    setChave("");
+  };
+
+  if (!sessao) {
+    return (
+      <div className="min-h-dvh bg-muted/30">
+        <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col border-x bg-background shadow-sm">
+          <AppBar dark={dark} onToggleDark={() => setDark(!dark)} />
+          <TelaAuth
+            onAutenticado={(s) => {
+              setSessao(s);
+              sincronizarConfig();
+            }}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-dvh bg-muted/30">
       <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col border-x bg-background shadow-sm">
-        <AppBar dark={dark} onToggleDark={() => setDark(!dark)} />
+        <AppBar
+          dark={dark}
+          onToggleDark={() => setDark(!dark)}
+          usuarioNome={sessao.nome}
+          onLogout={handleLogout}
+        />
 
         {aba === 0 && chave === "" && <BannerSemChave onClick={irConfig} />}
 

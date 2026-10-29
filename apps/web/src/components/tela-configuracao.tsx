@@ -179,6 +179,11 @@ export function TelaConfiguracao({ onSalvo }: TelaConfiguracaoProps) {
         <code>VITE_TURSO_DATABASE_URL</code>
         <code className="ml-2">VITE_TURSO_AUTH_TOKEN</code>
       </div>
+
+      <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
+        <p className="font-medium mb-1">Segurança da chave de API:</p>
+        <p>A chave de API do Gemini é criptografada de ponta a ponta (AES-256-GCM) com a senha da sua conta antes de ser salva no TursoDB. Sua senha nunca deixa este dispositivo em texto claro.</p>
+      </div>
     </div>
   );
 }

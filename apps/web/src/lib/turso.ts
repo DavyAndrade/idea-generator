@@ -163,7 +163,7 @@ export async function query<T = Record<string, unknown>>(sql: string, args: unkn
   return [];
 }
 
-// Inicialização automática das tabelas
+// Inicialização automática das tabelas (tudo em uma única chamada pipeline)
 export async function initTurso(): Promise<void> {
   await pipeline([
     {
@@ -184,6 +184,20 @@ export async function initTurso(): Promise<void> {
           categoria TEXT NOT NULL,
           prompt_usado TEXT,
           favorito INTEGER NOT NULL DEFAULT 0,
+          criado_em TEXT NOT NULL
+        )
+      `,
+    },
+    {
+      sql: `
+        CREATE TABLE IF NOT EXISTS usuarios (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          nome TEXT NOT NULL,
+          email TEXT UNIQUE NOT NULL,
+          salt TEXT NOT NULL,
+          credencial_hash TEXT NOT NULL,
+          gemini_key_cifrada TEXT,
+          gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
           criado_em TEXT NOT NULL
         )
       `,

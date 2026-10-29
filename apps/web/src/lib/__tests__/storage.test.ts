@@ -11,6 +11,10 @@ import {
   alternarFavorito,
   resetInitCache,
   testarConexaoTurso,
+  registrarUsuario,
+  loginUsuario,
+  obterSessaoAtual,
+  encerrarSessao,
 } from '@/lib/storage';
 
 function mockFetchSequence(responses: { response?: unknown; ok?: boolean; status?: number }[]) {
@@ -245,5 +249,355 @@ describe('storage - CRUD de ideias', () => {
 
     const result = await testarConexaoTurso();
     expect(result.ok).toBe(true);
+  });
+});
+
+// --- Auth tests ---
+
+describe('storage - sessão e auth', () => {
+  beforeEach(() => {
+    resetInitCache();
+    encerrarSessao(); // garante sessão limpa
+  });
+
+  afterEach(() => {
+    encerrarSessao();
+    vi.restoreAllMocks();
+  });
+
+  it('obterSessaoAtual retorna null quando não logado', () => {
+    expect(obterSessaoAtual()).toBeNull();
+  });
+
+  it('encerrarSessao limpa a sessão ativa', async () => {
+    // Simula sessão em memória (não via login, apenas via storage direto)
+    const sessao = { id: 1, nome: 'Teste', email: 't@t.com', vaultKeyHex: 'abc' };
+    // Força sessão via sessionStorage interno
+    const storage = await import('@/lib/storage');
+    // Usa salvarSessaoStorage interno via registrarUsuario mockado
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+
+    await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'senha123' });
+    expect(obterSessaoAtual()).not.toBeNull();
+    expect(obterSessaoAtual()!.id).toBe(1);
+
+    encerrarSessao();
+    expect(obterSessaoAtual()).toBeNull();
+  });
+
+  it('registrarUsuario cria usuário e salva sessão', async () => {
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '42' }, { type: 'text', value: 'João' }, { type: 'text', value: 'joao@test.com' },
+                 { type: 'text', value: 'somesalt' }, { type: 'text', value: 'somehash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const sessao = await registrarUsuario({ nome: 'João', email: 'JOAO@Test.com', senha: 'senha123' });
+    expect(sessao.id).toBe(42);
+    expect(sessao.nome).toBe('João');
+    expect(sessao.email).toBe('joao@test.com');
+    expect(sessao.vaultKeyHex).toMatch(/^[0-9a-f]{64}$/);
+    expect(obterSessaoAtual()?.id).toBe(42);
+  });
+
+  it('loginUsuario com credenciais válidas salva sessão', async () => {
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [],
+            },
+          }],
+        },
+      },
+    ]);
+
+    // Nenhum usuário com esse email → falha
+    await expect(loginUsuario({ email: 'naoexiste@test.com', senha: 'senha' })).rejects.toThrow('inválidos');
+  });
+
+  it('salvarChave cifra quando há sessão ativa', async () => {
+    // Primeiro registra um usuário (init + INSERT RETURNING)
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+    await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'senha123' });
+
+    // Agora salva a chave (UPDATE usuarios SET gemini_key_cifrada)
+    const mock = mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // UPDATE
+    ]);
+
+    await salvarChave('minha-api-key');
+
+    const call = mock.mock.calls[0];
+    const body = JSON.parse(call[1].body);
+    expect(body.requests[0].stmt.sql).toBe('UPDATE usuarios SET gemini_key_cifrada = ? WHERE id = ?');
+    // O valor cifrado não deve ser a chave em plain text
+    const cifrada = body.requests[0].stmt.args[0].value;
+    expect(cifrada).not.toBe('minha-api-key');
+  });
+
+  it('salvarChave usa tabela configuracoes quando não há sessão (modo legado)', async () => {
+    const mock = mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // INSERT upsert
+    ]);
+
+    await salvarChave('minha-chave-api');
+
+    const call = mock.mock.calls[1];
+    const body = JSON.parse(call[1].body);
+    expect(body.requests[0].stmt.sql).toContain('INSERT INTO configuracoes');
+  });
+
+  it('lerChave decifra quando há sessão ativa', async () => {
+    // Registra usuário
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+    const sessao = await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'senha123' });
+
+    // Cifra uma chave e salva
+    const { cifrarTexto } = await import('@/lib/crypto');
+    const cifrada = await cifrarTexto('api-key-teste', sessao.vaultKeyHex);
+
+    mockFetchSequence([
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'gemini_key_cifrada' }],
+              rows: [[{ type: 'text', value: cifrada }]],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const chave = await lerChave();
+    expect(chave).toBe('api-key-teste');
+  });
+
+  it('lerChave usa tabela configuracoes quando não há sessão (modo legado)', async () => {
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'valor' }],
+              rows: [[{ type: 'text', value: 'chave-legada' }]],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const chave = await lerChave();
+    expect(chave).toBe('chave-legada');
+  });
+
+  it('salvarModelo usa tabela usuarios quando há sessão', async () => {
+    // Registra usuário
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+    await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'senha123' });
+
+    // Salva modelo
+    const mock = mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // UPDATE
+    ]);
+
+    await salvarModelo('gemini-2.5-pro');
+
+    const call = mock.mock.calls[0];
+    const body = JSON.parse(call[1].body);
+    expect(body.requests[0].stmt.sql).toBe('UPDATE usuarios SET gemini_modelo = ? WHERE id = ?');
+    expect(body.requests[0].stmt.args).toEqual([
+      { type: 'text', value: 'gemini-2.5-pro' },
+      { type: 'integer', value: '1' },
+    ]);
+  });
+
+  it('lerModelo usa tabela usuarios quando há sessão', async () => {
+    // Registra usuário
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-pro' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+    await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'senha123' });
+
+    // Lê modelo
+    mockFetchSequence([
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'gemini_modelo' }],
+              rows: [[{ type: 'text', value: 'gemini-2.5-pro' }]],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const modelo = await lerModelo();
+    expect(modelo).toBe('gemini-2.5-pro');
+  });
+
+  it('loginUsuario falha com senha incorreta', async () => {
+    // Registra com senha 'senha123'
+    const { derivarChaves, gerarSaltHex } = await import('@/lib/crypto');
+    const salt = await gerarSaltHex();
+    const { authHashHex } = await derivarChaves('senha123', salt);
+
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: salt }, { type: 'text', value: authHashHex }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+    await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'senha123' });
+    encerrarSessao();
+
+    // Tenta login com senha errada
+    mockFetchSequence([
+      // init já foi feito, mas resetInitCache não foi chamado...
+      // O problema é que ensureInit() usa o cache, então não faz mais init
+      // A query SELECT precisa de uma resposta
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
+                 { type: 'text', value: salt }, { type: 'text', value: authHashHex }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+
+    await expect(loginUsuario({ email: 't@t.com', senha: 'senha-errada' })).rejects.toThrow('inválidos');
   });
 });

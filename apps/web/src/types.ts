@@ -33,3 +33,10 @@ export type NovaIdeiaInput = Omit<Ideia, 'id' | 'criadoEm' | 'favorito'> & {
   favorito?: boolean;
   criadoEm?: string;
 };
+
+export interface UsuarioSessao {
+  id: number;
+  nome: string;
+  email: string;
+  vaultKeyHex: string;
+}

@@ -1,8 +1,16 @@
 // Persistência de tudo no TursoDB.
-// - gemini_api_key e gemini_modelo → tabela configuracoes
+// - gemini_api_key e gemini_modelo → tabela configuracoes (modo legado)
+//   OU tabela usuarios (modo autenticado)
 // - ideias → tabela ideias
-import { execute, query, initTurso, rowToIdeia } from '@/lib/turso';
-import { MODELO_PADRAO, type Ideia, type ModeloGemini, type NovaIdeiaInput } from '@/types';
+import { execute, query, initTurso, rowToIdeia, testarConexaoTurso as _testarConexaoTurso } from '@/lib/turso';
+import {
+  gerarSaltHex,
+  derivarChaves,
+  cifrarTexto,
+  decifrarTexto,
+  constantTimeEquals,
+} from '@/lib/crypto';
+import { MODELO_PADRAO, type Ideia, type ModeloGemini, type NovaIdeiaInput, type UsuarioSessao } from '@/types';
 
 // Re-exporta testarConexaoTurso para uso em componentes
 export { testarConexaoTurso } from '@/lib/turso';
@@ -25,10 +33,145 @@ export function resetInitCache(): void {
   initPromise = null;
 }
 
+// --- Sessão de usuário ---
+
+const SESSAO_KEY = 'gerador_ideias_sessao';
+
+// Armazenamento em memória para fallback em testes (onnde não há sessionStorage)
+let sessaoMemoria: UsuarioSessao | null = null;
+
+function lerSessaoStorage(): UsuarioSessao | null {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      const raw = sessionStorage.getItem(SESSAO_KEY);
+      if (raw) return JSON.parse(raw) as UsuarioSessao;
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return sessaoMemoria;
+}
+
+function salvarSessaoStorage(sessao: UsuarioSessao | null): void {
+  sessaoMemoria = sessao;
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      if (sessao) {
+        sessionStorage.setItem(SESSAO_KEY, JSON.stringify(sessao));
+      } else {
+        sessionStorage.removeItem(SESSAO_KEY);
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
+
+export function obterSessaoAtual(): UsuarioSessao | null {
+  return lerSessaoStorage();
+}
+
+export function encerrarSessao(): void {
+  salvarSessaoStorage(null);
+}
+
+// --- Registro/Login de usuário ---
+
+export async function registrarUsuario(params: {
+  nome: string;
+  email: string;
+  senha: string;
+}): Promise<UsuarioSessao> {
+  await ensureInit();
+
+  const saltHex = await gerarSaltHex();
+  const { authHashHex, vaultKeyHex } = await derivarChaves(params.senha, saltHex);
+  const emailLower = params.email.toLowerCase();
+  const criadoEm = new Date().toISOString();
+
+  const rows = await query<Record<string, unknown>>(
+    `INSERT INTO usuarios (nome, email, salt, credencial_hash, gemini_key_cifrada, gemini_modelo, criado_em)
+     VALUES (?, ?, ?, ?, ?, ?, ?)
+     RETURNING *`,
+    [
+      params.nome,
+      emailLower,
+      saltHex,
+      authHashHex,
+      null,
+      MODELO_PADRAO,
+      criadoEm,
+    ],
+  );
+
+  if (rows.length === 0) {
+    throw new Error('Falha ao registrar usuário');
+  }
+
+  const row = rows[0];
+  const sessao: UsuarioSessao = {
+    id: Number(row.id),
+    nome: String(row.nome),
+    email: String(row.email),
+    vaultKeyHex,
+  };
+
+  salvarSessaoStorage(sessao);
+  return sessao;
+}
+
+export async function loginUsuario(params: {
+  email: string;
+  senha: string;
+}): Promise<UsuarioSessao> {
+  await ensureInit();
+
+  const emailLower = params.email.toLowerCase();
+
+  const rows = await query<Record<string, unknown>>(
+    'SELECT * FROM usuarios WHERE email = ?',
+    [emailLower],
+  );
+
+  if (rows.length === 0) {
+    throw new Error('E-mail ou senha inválidos');
+  }
+
+  const row = rows[0];
+  const { authHashHex, vaultKeyHex } = await derivarChaves(params.senha, String(row.salt));
+
+  if (!constantTimeEquals(authHashHex, String(row.credencial_hash))) {
+    throw new Error('E-mail ou senha inválidos');
+  }
+
+  const sessao: UsuarioSessao = {
+    id: Number(row.id),
+    nome: String(row.nome),
+    email: String(row.email),
+    vaultKeyHex,
+  };
+
+  salvarSessaoStorage(sessao);
+  return sessao;
+}
+
 // --- Configurações: chave API Gemini ---
 
 export async function lerChave(): Promise<string> {
   await ensureInit();
+
+  const sessao = obterSessaoAtual();
+  if (sessao) {
+    const rows = await query<{ gemini_key_cifrada: string }>(
+      'SELECT gemini_key_cifrada FROM usuarios WHERE id = ?',
+      [sessao.id],
+    );
+    const cifrada = rows[0]?.gemini_key_cifrada;
+    if (!cifrada) return '';
+    return decifrarTexto(cifrada, sessao.vaultKeyHex);
+  }
+
+  // Modo legado: configurações
   const rows = await query<{ valor: string }>(
     'SELECT valor FROM configuracoes WHERE chave = ?',
     ['gemini_api_key'],
@@ -38,6 +181,18 @@ export async function lerChave(): Promise<string> {
 
 export async function salvarChave(chave: string): Promise<void> {
   await ensureInit();
+
+  const sessao = obterSessaoAtual();
+  if (sessao) {
+    const cifrada = await cifrarTexto(chave, sessao.vaultKeyHex);
+    await execute(
+      'UPDATE usuarios SET gemini_key_cifrada = ? WHERE id = ?',
+      [cifrada, sessao.id],
+    );
+    return;
+  }
+
+  // Modo legado: tabela configuracoes
   await execute(
     'INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor',
     ['gemini_api_key', chave],
@@ -48,6 +203,19 @@ export async function salvarChave(chave: string): Promise<void> {
 
 export async function lerModelo(): Promise<ModeloGemini> {
   await ensureInit();
+
+  const sessao = obterSessaoAtual();
+  if (sessao) {
+    const rows = await query<{ gemini_modelo: string }>(
+      'SELECT gemini_modelo FROM usuarios WHERE id = ?',
+      [sessao.id],
+    );
+    const stored = rows[0]?.gemini_modelo;
+    if (stored) return stored as ModeloGemini;
+    return MODELO_PADRAO;
+  }
+
+  // Modo legado: tabela configuracoes
   const rows = await query<{ valor: string }>(
     'SELECT valor FROM configuracoes WHERE chave = ?',
     ['gemini_modelo'],
@@ -59,6 +227,17 @@ export async function lerModelo(): Promise<ModeloGemini> {
 
 export async function salvarModelo(modelo: ModeloGemini): Promise<void> {
   await ensureInit();
+
+  const sessao = obterSessaoAtual();
+  if (sessao) {
+    await execute(
+      'UPDATE usuarios SET gemini_modelo = ? WHERE id = ?',
+      [modelo, sessao.id],
+    );
+    return;
+  }
+
+  // Modo legado: tabela configuracoes
   await execute(
     'INSERT INTO configuracoes (chave, valor) VALUES (?, ?) ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor',
     ['gemini_modelo', modelo],
