@@ -7,12 +7,14 @@ Repositório: `/home/davy/Desenvolvimento/Projetos/GeradorDeIdeias`
 
 ## Commands
 
+All from `apps/web/` (root `package.json` scripts delegate via `bun --cwd apps/web`):
+
 - `bun install` — instalar dependências
-- `bun run dev` — iniciar servidor de desenvolvimento (localhost:5173)
-- `bun run build` — build de produção
-- `bun run preview` — preview do build local
-- `bun test` — rodar testes (Vitest)
-- `bun run typecheck` — verificar tipos TypeScript (`tsc --noEmit`)
+- `bun --cwd apps/web run dev` — iniciar servidor de desenvolvimento (localhost:5173)
+- `bun --cwd apps/web run build` — build de produção → `dist/`
+- `bun --cwd apps/web run preview` — preview do build local
+- `bun --cwd apps/web test` — rodar testes (Vitest)
+- `bun --cwd apps/web x tsc --noEmit` — verificar tipos TypeScript
 
 ## Stack decisions (não mudar sem pedido explícito)
 
