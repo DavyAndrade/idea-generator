@@ -98,7 +98,7 @@
     }
 
     h1.hero-title {
-      font-size: 4rem;
+      font-size: 3.8rem;
       font-weight: 800;
       line-height: 1.1;
       letter-spacing: -0.03em;
@@ -109,46 +109,46 @@
     }
 
     h2.slide-heading {
-      font-size: 2.5rem;
+      font-size: 2.35rem;
       font-weight: 700;
       letter-spacing: -0.02em;
       color: #ffffff;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.45rem;
     }
 
     p.slide-subheading {
-      font-size: 1.25rem;
+      font-size: 1.18rem;
       color: #94a3b8;
-      max-width: 900px;
-      line-height: 1.5;
-      margin-bottom: 1.5rem;
+      max-width: 1000px;
+      line-height: 1.45;
+      margin-bottom: 1.35rem;
     }
 
     /* Grid Layouts */
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 2rem;
+      gap: 1.75rem;
     }
 
     .grid-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 1.5rem;
+      gap: 1.35rem;
     }
 
     .grid-4 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 1.25rem;
+      gap: 1.15rem;
     }
 
     /* Cards */
     .card {
       background: rgba(30, 41, 59, 0.4);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 1.25rem;
-      padding: 1.75rem;
+      border-radius: 1.15rem;
+      padding: 1.5rem;
       backdrop-filter: blur(12px);
     }
 
@@ -157,34 +157,39 @@
       background: rgba(99, 102, 241, 0.08);
     }
 
+    .card.success {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.06);
+    }
+
     .card h3 {
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 600;
       color: #f8fafc;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.65rem;
       display: flex;
       align-items: center;
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .card p, .card li {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: #cbd5e1;
-      line-height: 1.55;
+      line-height: 1.5;
     }
 
     .card ul {
       list-style-type: none;
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: 0.5rem;
     }
 
     .card ul li::before {
       content: "✦";
       color: #818cf8;
       display: inline-block;
-      margin-right: 0.6rem;
+      margin-right: 0.5rem;
       font-weight: bold;
     }
 
@@ -212,28 +217,34 @@
       border-color: rgba(16, 185, 129, 0.4);
     }
 
+    .badge-amber {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.4);
+    }
+
     /* Code & Mono */
     .mono-box {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       background: rgba(15, 23, 42, 0.8);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 0.75rem;
-      padding: 1rem 1.25rem;
+      padding: 0.85rem 1.15rem;
       color: #93c5fd;
       line-height: 1.5;
     }
 
     .stat-number {
-      font-size: 3rem;
+      font-size: 2.8rem;
       font-weight: 800;
       color: #818cf8;
       line-height: 1;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .stat-label {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       color: #94a3b8;
       font-weight: 500;
     }
@@ -248,21 +259,22 @@
       <div class="slide-category">Engenharia de Software • Projeto de Graduação</div>
     </div>
     <div class="slide-content">
-      <div style="max-width: 1000px;">
-        <span class="badge-pill badge-primary" style="margin-bottom: 1.25rem;">PROJETO FULL-STACK MODERNO</span>
+      <div style="max-width: 1050px;">
+        <span class="badge-pill badge-primary" style="margin-bottom: 1.25rem;">PROJETO FULL-STACK • IA & PRIVACIDADE</span>
         <h1 class="hero-title">Lumi: Iluminando Ideias com Inteligência Artificial e Privacidade</h1>
-        <p class="slide-subheading" style="font-size: 1.4rem;">
+        <p class="slide-subheading" style="font-size: 1.35rem;">
           PWA responsivo integrado ao Google Gemini via BYOK, arquitetura Serverless BFF e criptografia ponta a ponta Zero-Knowledge.
         </p>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem;">
+        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap; margin-top: 1.25rem;">
           <span class="badge-pill">React 19</span>
           <span class="badge-pill">TypeScript</span>
           <span class="badge-pill">Vite</span>
           <span class="badge-pill">Tailwind CSS v4</span>
           <span class="badge-pill">TursoDB (Hrana v2)</span>
-          <span class="badge-pill">Gemini REST</span>
+          <span class="badge-pill">Google Gemini REST</span>
           <span class="badge-pill">Argon2id (WASM)</span>
           <span class="badge-pill">AES-256-GCM</span>
+          <span class="badge-pill">Serverless BFF</span>
         </div>
       </div>
     </div>
@@ -272,189 +284,268 @@
     </div>
   </section>
 
-  <!-- SLIDE 2: MOTIVAÇÃO E PROPOSTA -->
+  <!-- SLIDE 2: PROBLEMA -->
   <section class="slide">
     <div class="slide-header">
       <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">01 • Introdução & Problema</div>
+      <div class="slide-category">01 • Problema</div>
     </div>
     <div class="slide-content">
-      <h2 class="slide-heading">O Desafio Criativo e a Privacidade na Nuvem</h2>
-      <p class="slide-subheading">Como gerar ideias originais com IA sem expor segredos industriais ou custos de infraestrutura.</p>
+      <h2 class="slide-heading">O Problema: Bloqueio Criativo e Riscos na Nuvem</h2>
+      <p class="slide-subheading">Obstáculos no processo de inovação de desenvolvedores, empreendedores e criadores de conteúdo.</p>
       
       <div class="grid-3">
         <div class="card">
-          <h3>⚡ O Bloqueio Criativo</h3>
-          <p>Profissionais e estudantes frequentemente enfrentam dificuldades para estruturar ideias de novos aplicativos, conteúdos, modelos de negócios e ferramentas open source do zero.</p>
+          <h3>⚡ Bloqueio Criativo e Dispersão</h3>
+          <p>Dificuldade frequente em articular pensamentos difusos em ideias práticas, viáveis e estruturadas (com proposta de valor, público-alvo e nicho bem definidos).</p>
         </div>
         <div class="card">
-          <h3>🔒 Dilema da Privacidade</h3>
-          <p>Ferramentas convencionais de IA na nuvem exigem envio de dados em texto claro para servidores de terceiros, comprometendo a propriedade intelectual de novas iniciativas.</p>
+          <h3>🔒 Exposição de Propriedade Intelectual</h3>
+          <p>Ferramentas convencionais de ideação na nuvem armazenam dados em texto claro nos servidores. Ideias confidenciais e projetos de negócios ficam expostos a vazamentos.</p>
         </div>
-        <div class="card highlight">
-          <h3>💡 A Solução Lumi</h3>
-          <p>Um PWA portátil e veloz que consome a IA de ponta do Google Gemini com <strong>Bring Your Own Key (BYOK)</strong> e banco de dados SQLite distribuído na borda, com isolamento e criptografia E2E.</p>
+        <div class="card">
+          <h3>💸 Custos e Dependência Centralizada</h3>
+          <p>Plataformas que intermediam IA cobram assinaturas elevadas ou sofrem com limites rígidos de requisições, tornando a infraestrutura cara e com alto risco de lock-in.</p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <div>Lumi — Gerador de Ideias Criativas</div>
-      <div>Página 2</div>
+      <div>Lumi — Diagnóstico do Problema</div>
+      <div>Slide 2 de 10</div>
     </div>
   </section>
 
-  <!-- SLIDE 3: ARQUITETURA DE SOFTWARE -->
+  <!-- SLIDE 3: SOLUÇÃO -->
   <section class="slide">
     <div class="slide-header">
       <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">02 • Arquitetura do Sistema</div>
+      <div class="slide-category">02 • Solução</div>
     </div>
     <div class="slide-content">
-      <h2 class="slide-heading">Arquitetura Serverless BFF (Backend-For-Frontend)</h2>
-      <p class="slide-subheading">Separação estrita de camadas para garantir segurança e zero vazamento de credenciais.</p>
+      <h2 class="slide-heading">A Solução: Lumi — Inteligente, Privado e Portátil</h2>
+      <p class="slide-subheading">Uma plataforma de ideação estruturada com custo zero de infraestrutura e criptografia soberana.</p>
 
-      <div class="grid-2">
+      <div class="grid-3">
+        <div class="card highlight">
+          <h3>💡 Ideação Estruturada por IA</h3>
+          <p>Geração instantânea de títulos cativantes, descrições detalhadas e enquadramento em categorias mercadológicas pré-definidas através do Google Gemini.</p>
+        </div>
+        <div class="card success">
+          <h3>🔑 Paradigma BYOK (Bring Your Own Key)</h3>
+          <p>O usuário conecta sua própria chave gratuita do Google AI Studio. Sem repasse de custos, sem intermediários lendo as consultas e com cota individual direta.</p>
+        </div>
         <div class="card">
-          <h3>🖥️ Cliente (PWA React 19)</h3>
+          <h3>🛡️ Soberania Zero-Knowledge</h3>
+          <p>Criptografia client-side ponta a ponta: senhas e ideias são cifradas antes de saírem do navegador. O servidor armazena dados sem ter a capacidade matemática de lê-los.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Proposta de Valor</div>
+      <div>Slide 3 de 10</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: APLICATIVO -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">03 • O Aplicativo (PWA & UX)</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">O Aplicativo: PWA Moderno e Focado na Experiência</h2>
+      <p class="slide-subheading">Construído com React 19, Tailwind CSS v4 e princípios de acessibilidade e responsividade.</p>
+
+      <div class="grid-4">
+        <div class="card">
+          <h3>✨ Tela de Ideação</h3>
+          <p>Saudação personalizada pelo primeiro nome, tags de categorias de um clique (App, Negócio, Conteúdo, etc.) e geração em tempo real com indicador visual de progresso.</p>
+        </div>
+        <div class="card">
+          <h3>📂 Histórico & Filtros</h3>
+          <p>Listagem completa das ideias do usuário autenticado com filtragem dinâmica por categoria, alternador de favoritas e busca textual em memória após decifrar.</p>
+        </div>
+        <div class="card">
+          <h3>⚙️ Configurações & BYOK</h3>
+          <p>Gestão segura da chave de API do Gemini, alternância entre 9 modelos suportados e teste de conectividade ao vivo com validação imediata.</p>
+        </div>
+        <div class="card">
+          <h3>📱 PWA & Dark Mode</h3>
+          <p>Instalável nativamente no desktop e smartphone (Service Worker cache-first), navegação rápida por abas inferiores e alternância de tema Claro/Escuro.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Funcionalidades do Aplicativo</div>
+      <div>Slide 4 de 10</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: ARQUITETURA -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">04 • Arquitetura do Sistema</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Arquitetura de Software: Padrão Serverless BFF</h2>
+      <p class="slide-subheading">Desacoplamento estrito em 3 camadas para garantir isolamento de banco e segurança operacional.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>🖥️ 1. Camada de Apresentação (PWA)</h3>
           <ul>
-            <li><strong>UI Responsiva:</strong> Tailwind CSS v4, tokens de design e componentes shadcn/ui.</li>
-            <li><strong>Portabilidade PWA:</strong> Service Worker com cache-first e manifest instalável.</li>
-            <li><strong>Comunicação Unificada:</strong> Cliente nunca fala diretamente com o banco de dados; todas as operações trafegam via <code>/api/*</code>.</li>
-            <li><strong>Zero Segredos no Browser:</strong> Tokens de banco e chaves de serviço ficam 100% blindados fora do bundle client-side.</li>
+            <li>React 19 + TypeScript (tipagem 100% estrita).</li>
+            <li>Derivação de chaves e cifragem no navegador (Argon2id WASM + AES-256-GCM).</li>
+            <li>Zero comunicação direta com o banco: todo acesso passa pelo cliente HTTP <code>api-client.ts</code>.</li>
           </ul>
         </div>
         <div class="card highlight">
-          <h3>☁️ BFF Serverless & TursoDB</h3>
+          <h3>⚡ 2. Backend-For-Frontend (BFF)</h3>
           <ul>
-            <li><strong>Vercel Serverless Functions:</strong> Rotas <code>/api/auth/*</code>, <code>/api/ideias</code> e <code>/api/usuario/*</code> com Web Fetch API padrão.</li>
-            <li><strong>TursoDB Edge Engine:</strong> Conexão ultra rápida via HTTP Pipeline v2 (protocolo Hrana v2 sobre HTTPS), dispensando dependências C nativas.</li>
-            <li><strong>Proxy de Dev Vite:</strong> Interceptador dinâmico em desenvolvimento espelhando o comportamento de produção serverless.</li>
+            <li>Vercel Serverless Functions padronizadas com Web Fetch API (<code>Request</code> / <code>Response</code>).</li>
+            <li>Rotas modulares sob <code>/api/*</code>: auth, ideias e perfil do usuário.</li>
+            <li>Autenticação stateless via Bearer Token JWT (HS256) e injeção do <code>usuario_id</code>.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>☁️ 3. Persistência & IA Externa</h3>
+          <ul>
+            <li>TursoDB na borda com Hrana v2 (apenas o BFF detém as credenciais do banco).</li>
+            <li>Google Gemini REST direto do cliente usando a chave BYOK do usuário no header <code>x-goog-api-key</code>.</li>
           </ul>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <div>Lumi — Arquitetura de Software</div>
-      <div>Página 3</div>
+      <div>Slide 5 de 10</div>
     </div>
   </section>
 
-  <!-- SLIDE 4: SEGURANÇA ZERO-KNOWLEDGE -->
+  <!-- SLIDE 6: BANCO DE DADOS & WEB SERVICE -->
   <section class="slide">
     <div class="slide-header">
       <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">03 • Engenharia de Segurança</div>
+      <div class="slide-category">05 • Banco de Dados & Web Services</div>
     </div>
     <div class="slide-content">
-      <h2 class="slide-heading">Segurança Criptográfica Zero-Knowledge</h2>
-      <p class="slide-subheading">O servidor armazena dados, mas é matematicamente incapaz de ler o conteúdo protegido.</p>
+      <h2 class="slide-heading">Persistência na Borda e Web Services RESTful</h2>
+      <p class="slide-subheading">TursoDB via HTTP Pipeline v2 e endpoints serverless de alta performance e isolamento multitenant.</p>
 
-      <div class="grid-3">
-        <div class="card">
-          <h3>🔐 Argon2id (WASM)</h3>
-          <p>Derivação no navegador via WebAssembly (19 MiB RAM, 3 iterações). Gera hash no formato canônico PHC padrão OWASP e chave simétrica <code>vaultKeyHex</code> (256 bits).</p>
+      <div class="grid-2">
+        <div class="card highlight">
+          <h3>🗄️ TursoDB (Edge SQLite / Hrana v2)</h3>
+          <ul>
+            <li><strong>Protocolo Hrana v2 sobre HTTPS:</strong> Comunicação rápida via HTTP Pipeline v2, dispensando binários nativos C/C++ ou <code>@libsql/client</code> pesado.</li>
+            <li><strong>Isolamento Multi-inquilino:</strong> Todas as consultas de ideias são estritamente filtradas por <code>usuario_id</code> vinculado ao token JWT validado.</li>
+            <li><strong>Criptografia em Repouso:</strong> Campos confidenciais são armazenados exclusivamente como ciphertext (AES-GCM) e credenciais como PHC Argon2id.</li>
+            <li><strong>Schema Relacional Enxuto:</strong> Tabelas <code>usuarios</code> e <code>ideias</code> com chave estrangeira e integridade referencial.</li>
+          </ul>
         </div>
         <div class="card">
-          <h3>🛡️ HMAC-SHA256 Pepper</h3>
-          <p>Camada secreta adicional mantida no servidor para enriquecer a senha antes da derivação, inviabilizando rainbow tables e ataques de força bruta offline.</p>
+          <h3>🌐 Web Services Serverless (`/api/*`)</h3>
+          <ul>
+            <li><strong>Auth Endpoints:</strong> <code>/api/auth/registrar</code>, <code>/api/auth/login</code> e <code>/api/auth/sessao</code> para ciclo de vida de autenticação.</li>
+            <li><strong>CRUD de Ideias:</strong> <code>GET /api/ideias</code> (listar), <code>POST /api/ideias</code> (criar com E2E), <code>PATCH</code> (favoritar) e <code>DELETE</code>.</li>
+            <li><strong>Configurações do Usuário:</strong> <code>/api/usuario/config</code> e <code>/api/usuario/perfil</code> para troca de modelo e sincronização de chaves cifradas.</li>
+            <li><strong>Zero Vazamento de Segredos:</strong> Tokens de banco e Pepper ficam confinados nas variáveis do servidor Vercel.</li>
+          </ul>
         </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Banco de Dados & Web Services</div>
+      <div>Slide 6 de 10</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: DESENVOLVIMENTO DE IA -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">06 • Inteligência Artificial (Desenvolvimento)</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Engenharia de IA: Prompts, Schemas e Integração REST</h2>
+      <p class="slide-subheading">Como a inteligência do Lumi foi desenvolvida, calibrada e integrada sem intermediários pesados.</p>
+
+      <div class="grid-2">
         <div class="card">
-          <h3>🔑 AES-256-GCM E2E</h3>
-          <p>Chave Gemini e dados de ideias (descrição e tema) são cifrados no cliente com vetor de inicialização (IV) aleatório de 96 bits por registro. Ciphertext único sempre.</p>
+          <h3>🎯 Engenharia de Prompt e Taxonomia</h3>
+          <ul>
+            <li><strong>Persona Especialista:</strong> Prompt do sistema atua como estrategista de inovação, forçando ideias acionáveis e diferenciadas.</li>
+            <li><strong>Direcionamento por Categorias:</strong> Classificação estrita em 5 pilares do mercado: <code>App</code>, <code>Negócio</code>, <code>Conteúdo</code>, <code>Open Source</code> e <code>Hobby</code>.</li>
+            <li><strong>Restrições Negativas:</strong> Diretrizes para evitar jargões genéricos, introduções vazias e alucinações conceituais.</li>
+          </ul>
+        </div>
+        <div class="card highlight">
+          <h3>📐 Structured Outputs (JSON Schema Nativo)</h3>
+          <ul>
+            <li><strong>Garantia de Esquema:</strong> Uso de <code>responseMimeType: "application/json"</code> com <code>responseSchema</code> formal do Gemini v1beta.</li>
+            <li><strong>Campos Fortemente Tipados:</strong> Retorno restrito a <code>titulo</code> (conciso), <code>descricao</code> (com dor e solução) e <code>categoria</code> (enum restrito).</li>
+            <li><strong>Zero Falhas de Parse:</strong> Dispensa regex ou heurísticas no frontend; a IA gera JSON válido diretamente no nível de token.</li>
+          </ul>
         </div>
       </div>
 
-      <div class="mono-box" style="margin-top: 1.5rem;">
-        Fluxo E2E: Senha do Usuário ➔ Pepper (HMAC) ➔ Argon2id ➔ vaultKeyHex (256 bits) ➔ AES-256-GCM (Ciphertext) ➔ TursoDB
+      <div class="mono-box" style="margin-top: 1.25rem;">
+        Endpoint REST: POST https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent
+        Header: x-goog-api-key: {BYOK_USER_KEY} | Modelos: gemini-2.5-flash, gemini-2.5-pro, gemma-4-26b-it
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Desenvolvimento e Engenharia de IA</div>
+      <div>Slide 7 de 10</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: SEGURANÇA ZERO-KNOWLEDGE -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">07 • Engenharia de Segurança</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Segurança Criptográfica Zero-Knowledge</h2>
+      <p class="slide-subheading">Matematicamente impossível para o servidor inspecionar os segredos dos usuários.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>🔐 Argon2id (WebAssembly)</h3>
+          <p>Algoritmo de ponta (vencedor do PHC). Executado no cliente consumindo 19 MiB de memória com 3 iterações. Gera hash PHC canônico com salt embutido (OWASP).</p>
+        </div>
+        <div class="card">
+          <h3>🛡️ HMAC-SHA256 Pepper</h3>
+          <p>Segredo server-side injetado antes do hash. Impede ataques de dicionário e tabelas rainbow mesmo em caso de dump não autorizado do banco.</p>
+        </div>
+        <div class="card highlight">
+          <h3>🔑 AES-256-GCM End-to-End</h3>
+          <p>Chave de cofre de 256 bits derivada localmente. Chave Gemini, descrição da ideia e prompt são cifrados com IV aleatório de 96 bits por registro.</p>
+        </div>
+      </div>
+
+      <div class="mono-box" style="margin-top: 1.25rem;">
+        Fluxo E2E: Senha ➔ Pepper (HMAC) ➔ Argon2id ➔ vaultKeyHex ➔ AES-256-GCM (Ciphertext) ➔ TursoDB
       </div>
     </div>
     <div class="slide-footer">
       <div>Lumi — Segurança & Criptografia</div>
-      <div>Página 4</div>
+      <div>Slide 8 de 10</div>
     </div>
   </section>
 
-  <!-- SLIDE 5: INTEGRAÇÃO COM GEMINI (BYOK) -->
+  <!-- SLIDE 9: TESTES & CONFIABILIDADE -->
   <section class="slide">
     <div class="slide-header">
       <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">04 • Integração de IA</div>
+      <div class="slide-category">08 • Qualidade & Engenharia</div>
     </div>
     <div class="slide-content">
-      <h2 class="slide-heading">Google Gemini & Structured Outputs</h2>
-      <p class="slide-subheading">Geração com garantia de tipagem estrita e conformidade de JSON schema.</p>
+      <h2 class="slide-heading">Engenharia de Qualidade: Testes e Confiabilidade</h2>
+      <p class="slide-subheading">Desenvolvimento guiado por testes rigorosos, tipos estritos e alta eficiência de build.</p>
 
-      <div class="grid-2">
-        <div class="card">
-          <h3>🤖 Chamada REST Direta</h3>
-          <ul>
-            <li><strong>Zero SDK Overhead:</strong> Chamadas REST puras diretamente ao endpoint oficial v1beta do Google AI Studio.</li>
-            <li><strong>Chave no Header:</strong> Autenticação via header <code>x-goog-api-key</code> diretamente com a chave informada pelo usuário (BYOK).</li>
-            <li><strong>Modelos de Alta Velocidade:</strong> Suporte nativo a <code>gemini-2.5-flash</code>, <code>gemini-2.5-flash-lite</code>, <code>gemini-2.5-pro</code> e <code>gemma</code>.</li>
-          </ul>
-        </div>
-        <div class="card highlight">
-          <h3>📋 Structured Outputs (JSON Schema)</h3>
-          <ul>
-            <li><strong>Garantia de Esquema:</strong> Resposta estruturada com <code>responseMimeType: "application/json"</code>.</li>
-            <li><strong>Atributos Extraídos:</strong> Título atraente, descrição contextualizada e categoria classificada.</li>
-            <li><strong>Sem Alucinações de Formato:</strong> Evita erros de parse no frontend, garantindo rendering estável e imediato.</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="slide-footer">
-      <div>Lumi — Integração com LLMs</div>
-      <div>Página 5</div>
-    </div>
-  </section>
-
-  <!-- SLIDE 6: EXPERIÊNCIA DO USUÁRIO -->
-  <section class="slide">
-    <div class="slide-header">
-      <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">05 • Experiência do Usuário (UX)</div>
-    </div>
-    <div class="slide-content">
-      <h2 class="slide-heading">Interface Otimizada, Fluida e Acessível</h2>
-      <p class="slide-subheading">Design centrado no usuário com navegação por abas intuitiva e feedback em tempo real.</p>
-
-      <div class="grid-4">
-        <div class="card">
-          <h3>✨ Gerar Ideia</h3>
-          <p>Saudação personalizada pelo primeiro nome, tags de categorias de um clique e geração de ideias instantânea.</p>
-        </div>
-        <div class="card">
-          <h3>📂 Histórico</h3>
-          <p>Listagem completa das ideias do usuário logado com filtro por categorias, alternador de favoritas e busca em texto.</p>
-        </div>
-        <div class="card">
-          <h3>⚙️ Configurações</h3>
-          <p>Gerenciamento da chave Gemini, seleção de modelos e botão de teste de conectividade ao vivo.</p>
-        </div>
-        <div class="card">
-          <h3>🌙 Dark Mode</h3>
-          <p>Alternância suave entre tema claro e escuro persistida no navegador e no design system do Tailwind.</p>
-        </div>
-      </div>
-    </div>
-    <div class="slide-footer">
-      <div>Lumi — Design & Usabilidade</div>
-      <div>Página 6</div>
-    </div>
-  </section>
-
-  <!-- SLIDE 7: QUALIDADE DE SOFTWARE & TESTES -->
-  <section class="slide">
-    <div class="slide-header">
-      <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">06 • Qualidade & Engenharia</div>
-    </div>
-    <div class="slide-content">
-      <h2 class="slide-heading">Bateria de Testes, Métricas e Confiabilidade</h2>
-      <p class="slide-subheading">Desenvolvimento guiado por robustez de testes e compilação limpa.</p>
-
-      <div class="grid-3" style="margin-bottom: 1.5rem;">
+      <div class="grid-3" style="margin-bottom: 1.25rem;">
         <div class="card" style="text-align: center;">
           <div class="stat-number">98</div>
           <div class="stat-label">Testes Automatizados Passando (Vitest)</div>
@@ -471,54 +562,56 @@
 
       <div class="grid-2">
         <div class="card">
-          <h3>🧪 Suíte de Testes Unitários</h3>
-          <p>Cobertura completa de criptografia (Argon2id, HMAC, AES-GCM), cliente REST Gemini, rotas BFF e isolamento de banco de dados.</p>
+          <h3>🧪 Cobertura Unitária e Integração</h3>
+          <p>Testes abrangem criptografia (Argon2id, HMAC, AES-GCM), cliente Gemini REST, rotas serverless do BFF e queries SQL com TursoDB.</p>
         </div>
         <div class="card">
-          <h3>🚀 CI/CD & Vercel Deploy</h3>
-          <p>Configuração <code>vercel.json</code> padronizada para SPA Vite + Serverless Functions com regras de cache agressivas para PWA.</p>
+          <h3>🚀 Vercel Deploy & PWA Cache</h3>
+          <p>Configuração <code>vercel.json</code> otimizada com roteamento para SPA e serverless functions, além de cache agressivo para o Service Worker.</p>
         </div>
       </div>
     </div>
     <div class="slide-footer">
-      <div>Lumi — Qualidade & Métricas</div>
-      <div>Página 7</div>
+      <div>Lumi — Métricas e Qualidade de Software</div>
+      <div>Slide 9 de 10</div>
     </div>
   </section>
 
-  <!-- SLIDE 8: CONCLUSÃO -->
+  <!-- SLIDE 10: CONCLUSÃO & DEMO -->
   <section class="slide">
     <div class="slide-header">
       <div class="logo-badge">✦ LUMI</div>
-      <div class="slide-category">07 • Conclusão & Próximos Passos</div>
+      <div class="slide-category">09 • Conclusão & Demonstração</div>
     </div>
     <div class="slide-content">
-      <h2 class="slide-heading">Conclusão do Projeto</h2>
-      <p class="slide-subheading">Resultados alcançados e perspectivas futuras para a plataforma Lumi.</p>
+      <h2 class="slide-heading">Conclusão do Projeto & Demonstração Prática</h2>
+      <p class="slide-subheading">Entrega de um produto real, robusto, escalável e alinhado aos padrões da indústria.</p>
 
       <div class="grid-2">
         <div class="card highlight">
-          <h3>🎯 Objetivos Conquistados</h3>
+          <h3>🎯 Principais Diferenciais Alcançados</h3>
           <ul>
-            <li>Aplicação web moderna, responsiva e instalável (PWA).</li>
-            <li>Consumo escalável de LLMs sem custo de infraestrutura centralizada via BYOK.</li>
-            <li>Camada de segurança sólida com arquitetura Zero-Knowledge baseada em padrões OWASP.</li>
-            <li>Banco de dados distribuído na borda através do TursoDB Hrana v2.</li>
+            <li><strong>Problema & Solução:</strong> Ideação criativa estruturada sem bloqueios e sem perda de foco.</li>
+            <li><strong>Aplicativo:</strong> PWA veloz, responsivo e instalável com Dark Mode e filtros.</li>
+            <li><strong>Arquitetura & BD:</strong> Serverless BFF desacoplado e TursoDB na borda com isolamento total.</li>
+            <li><strong>Desenvolvimento de IA:</strong> Integração REST pura do Gemini com Structured Outputs (JSON Schema).</li>
+            <li><strong>Privacidade:</strong> Segurança Zero-Knowledge com criptografia AES-256-GCM ponta a ponta.</li>
           </ul>
         </div>
-        <div class="card">
-          <h3>🔮 Trabalhos Futuros</h3>
+        <div class="card success">
+          <h3>🎬 Roteiro da Demonstração ao Vivo</h3>
           <ul>
-            <li>Sincronização offline-first com Background Sync API.</li>
-            <li>Exportação de ideias em formatos Markdown, PDF e cartões visuais para redes sociais.</li>
-            <li>Multi-turn ideation (refinamento interativo da ideia selecionada).</li>
+            <li><strong>1. Cadastro de Usuário:</strong> Validação de senha forte e derivação Argon2id no browser.</li>
+            <li><strong>2. Configuração BYOK:</strong> Registro de chave Gemini e teste de conectividade.</li>
+            <li><strong>3. Geração de Ideia:</strong> Consulta ao modelo com Structured Outputs em tempo real.</li>
+            <li><strong>4. Histórico & Cifragem:</strong> Filtragem de ideias e inspeção do banco em ciphertext.</li>
           </ul>
         </div>
       </div>
     </div>
     <div class="slide-footer">
       <div>Obrigado! • Perguntas e Demonstração ao Vivo</div>
-      <div>Fim da Apresentação</div>
+      <div>Slide 10 de 10</div>
     </div>
   </section>
 

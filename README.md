@@ -12,7 +12,7 @@
 - **Segurança Zero-Knowledge**: A senha nunca sai do navegador em texto claro; as chaves de API e ideias confidenciais são cifradas localmente com AES-256-GCM.
 - **Histórico & Favoritos**: Filtre por categorias, marque favoritas e busque termos em memória após decifrar os registros.
 - **PWA & Offline Shell**: Instalável no celular ou desktop, com Service Worker cache-first para carregamento instantâneo.
-- **Apresentação em Slides (PDF)**: Documento completo em slides 16:9 (`apresentacao-lumi.pdf`) para apresentações acadêmicas.
+- **Apresentação em Slides (PDF) & Roteiro**: Documento completo em slides 16:9 (`apresentacao-lumi.pdf`) e roteiro oral detalhado (`ROTEIRO_APRESENTACAO.md`) para defesas acadêmicas.
 
 ---
 
@@ -39,7 +39,8 @@ src/
 api/              # Serverless BFF: api/auth/*, api/ideias/*, api/usuario/* + api/_lib/
 public/           # manifest.webmanifest, sw.js, icon.svg
 apresentacao-lumi.html # Template HTML dos slides de apresentação (16:9)
-apresentacao-lumi.pdf  # Slides compilados em PDF de alta resolução
+apresentacao-lumi.pdf  # Slides compilados em PDF de alta resolução (10 slides)
+ROTEIRO_APRESENTACAO.md # Roteiro de fala slide a slide e guia da demonstração
 vercel.json       # Configuração de deploy serverless na Vercel
 ```
 
@@ -101,5 +102,6 @@ O projeto possui configuração pronta em [`vercel.json`](./vercel.json) para se
 ## 📄 Apresentação Acadêmica
 
 Os slides prontos para apresentação na faculdade estão disponíveis em:
-- [Visualizar Slides (PDF)](./apresentacao-lumi.pdf) (8 slides widescreen 16:9)
+- [Visualizar Slides (PDF)](./apresentacao-lumi.pdf) (10 slides widescreen 16:9 abordando Problema, Solução, Aplicativo, Arquitetura, BD/Web Service, IA e Segurança)
+- [Roteiro de Apresentação (Markdown)](./ROTEIRO_APRESENTACAO.md) (Guia completo de fala slide a slide com tempos e dicas para perguntas da banca)
 - [Código-fonte dos Slides (HTML)](./apresentacao-lumi.html)
