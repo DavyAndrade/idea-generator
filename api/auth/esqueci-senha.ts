@@ -58,12 +58,20 @@ export async function POST(req: Request): Promise<Response> {
       nome: String(user.nome),
       subject: 'Recuperação de senha — Lumi',
       html: `
-        <p>Olá ${user.nome},</p>
-        <p>Recebemos uma solicitação de recuperação de senha.</p>
-        <p>Clique no link abaixo para redefinir sua senha (válido por 15 minutos):</p>
-        <p><a href="${link}">Redefinir senha</a></p>
-        <p>Se não solicitou, ignore este e-mail.</p>
-        <p>Equipe Lumi</p>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 520px; margin: 0 auto; padding: 32px 24px; background: #0c0714; color: #f4f4f5; border-radius: 12px; border: 1px solid #7c3aed;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <h1 style="color: #c084fc; font-size: 24px; margin: 0;">Lumi</h1>
+            <p style="color: #a1a1aa; font-size: 14px; margin: 4px 0 0 0;">Ideias iluminadas por IA</p>
+          </div>
+          <p style="font-size: 15px; line-height: 1.5; color: #e4e4e7;">Olá <strong>${user.nome}</strong>,</p>
+          <p style="font-size: 15px; line-height: 1.5; color: #e4e4e7;">Recebemos uma solicitação para redefinir a senha da sua conta no Lumi.</p>
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${link}" style="background-color: #7c3aed; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; display: inline-block;">Redefinir Minha Senha</a>
+          </div>
+          <p style="font-size: 13px; line-height: 1.5; color: #a1a1aa;">Se o botão não funcionar, copie e cole este link no seu navegador:<br/><a href="${link}" style="color: #c084fc; word-break: break-all;">${link}</a></p>
+          <hr style="border: none; border-top: 1px solid #27272a; margin: 28px 0;" />
+          <p style="font-size: 12px; color: #71717a; margin: 0;">Este link é válido por 15 minutos. Se você não solicitou a redefinição, nenhuma ação é necessária.</p>
+        </div>
       `,
     });
 

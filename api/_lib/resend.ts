@@ -17,10 +17,6 @@ import { ensureEnv } from './turso';
 
 const RESEND_BASE = 'https://api.resend.com/emails';
 
-// Modo de testes locais: força a exibição do link no terminal/console
-// Altere para false quando validar e quiser disparar e-mails reais via Resend
-export const FORCAR_CONSOLE_LOCAL = true;
-
 function getApiKey(): string | null {
   ensureEnv();
   return (
@@ -40,54 +36,61 @@ export async function enviarEmail(recipient: {
   const linkMatch = recipient.html.match(/href="([^"]+)"/);
   const link = linkMatch ? linkMatch[1] : '';
 
-  if (FORCAR_CONSOLE_LOCAL) {
-    console.log('\n======================================================');
-    console.log('📬 [LUMI - RECUPERAÇÃO DE SENHA (MODO TESTE LOCAL)]');
-    console.log(`👤 Para: ${recipient.email} <${recipient.nome}>`);
-    console.log(`📋 Assunto: ${recipient.subject}`);
-    if (link) {
-      console.log(`🔗 LINK DE RECUPERAÇÃO:\n   ${link}`);
-    }
-    console.log('======================================================\n');
-    return { ok: true, mensagem: 'Link de recuperação logado no console (modo teste local ativo).' };
+  // Sempre imprime o link com destaque no terminal dev para facilidade de teste local
+  console.log('\n======================================================');
+  console.log('📬 [LUMI - RECUPERAÇÃO DE SENHA]');
+  console.log(`👤 Para: ${recipient.email} <${recipient.nome}>`);
+  console.log(`📋 Assunto: ${recipient.subject}`);
+  if (link) {
+    console.log(`🔗 LINK DE RECUPERAÇÃO:\n   ${link}`);
   }
+  console.log('======================================================\n');
 
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    console.log(`[RESEND dev] Para: ${recipient.email} <${recipient.nome}>`);
-    console.log(`[RESEND dev] Link: ${link}`);
-    return { ok: true, mensagem: 'Email logado no console (sem RESEND_API_KEY)' };
+    return { ok: true, mensagem: 'Link de recuperação logado no console (sem RESEND_API_KEY no servidor)' };
   }
 
-  const payload: ResendEmail = {
-    from: process.env.RESEND_FROM || 'noreply@lumi.app',
-    to: recipient.email,
-    subject: recipient.subject,
-    html: recipient.html,
-  };
+  // Padrão do Resend: onboarding@resend.dev é aceito sem precisar de domínio customizado
+  const fromEmail = process.env.RESEND_FROM || 'Lumi <onboarding@resend.dev>';
 
-  const res = await fetch(RESEND_BASE, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-
-  const data = (await res.json()) as ResendResponse;
-
-  if (!res.ok) {
-    return {
-      ok: false,
-      mensagem: data.error || `Resend error: ${res.status} ${res.statusText}`,
+  try {
+    const payload: ResendEmail = {
+      from: fromEmail,
+      to: recipient.email,
+      subject: recipient.subject,
+      html: recipient.html,
     };
-  }
 
-  return {
-    ok: true,
-    id: data.id,
-    mensagem: 'Email enviado com sucesso',
-  };
+    const res = await fetch(RESEND_BASE, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = (await res.json()) as ResendResponse;
+
+    if (!res.ok) {
+      console.error('[RESEND ERRO]', data);
+      return {
+        ok: false,
+        mensagem: data.error || `Erro Resend (${res.status})`,
+      };
+    }
+
+    console.log(`✅ [RESEND] E-mail enviado com sucesso! ID: ${data.id}`);
+    return {
+      ok: true,
+      id: data.id,
+      mensagem: 'Email enviado com sucesso',
+    };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error('[RESEND EXCEPTION]', msg);
+    return { ok: false, mensagem: msg };
+  }
 }

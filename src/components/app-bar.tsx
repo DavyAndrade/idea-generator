@@ -29,6 +29,14 @@ export function AppBar({
               {primeiroNome}
             </span>
           )}
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Alternar tema"
+            onClick={onToggleDark}
+          >
+            {dark ? <Moon size={16} /> : <Sun size={16} />}
+          </Button>
           {onLogout && primeiroNome && (
             <Button
               variant="ghost"
@@ -39,14 +47,6 @@ export function AppBar({
               <LogOut size={16} />
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label="Alternar tema"
-            onClick={onToggleDark}
-          >
-            {dark ? <Moon size={16} /> : <Sun size={16} />}
-          </Button>
         </div>
       </div>
     </header>

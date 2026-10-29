@@ -6,6 +6,7 @@ const ROUTE_MAP: Record<string, () => Promise<{ default?: (req: Request) => Prom
   '/api/auth/login': () => import('./api/auth/login'),
   '/api/auth/sessao': () => import('./api/auth/sessao'),
   '/api/auth/esqueci-senha': () => import('./api/auth/esqueci-senha'),
+  '/api/auth/recuperar-senha': () => import('./api/auth/esqueci-senha'),
   '/api/auth/validar-token': () => import('./api/auth/validar-token'),
   '/api/auth/redefinir-senha': () => import('./api/auth/redefinir-senha'),
   '/api/ideias': () => import('./api/ideias/index'),
