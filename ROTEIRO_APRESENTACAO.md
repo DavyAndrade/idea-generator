@@ -12,16 +12,17 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 | Slide | Tópico Oficial Solicitado | Nome do Slide | Tempo Sugerido |
 |:---:|---|---|:---:|
-| **1** | Abertura | Capa do Projeto | 1 min |
-| **2** | **Problema** | O Problema: Bloqueio Criativo e Riscos na Nuvem | 1m 30s |
-| **3** | **Solução** | A Solução: Lumi — Inteligente, Privado e Portátil | 1m 30s |
-| **4** | **Aplicativo** | O Aplicativo: PWA Moderno e Focado na Experiência (UX) | 1m 30s |
-| **5** | **Arquitetura** | Arquitetura de Software: Padrão Serverless BFF | 1m 30s |
-| **6** | **BD e /ou Web Service** | Persistência na Borda e Web Services RESTful | 1m 30s |
-| **7** | **IA (desenvolver)** | Engenharia de IA: Prompts, Schemas e Integração REST | 1m 30s |
-| **8** | Segurança & Privacidade | Segurança Criptográfica Zero-Knowledge (Argon2id + AES-GCM) | 1 min |
-| **9** | Qualidade & Engenharia | Bateria de Testes, Métricas e Confiabilidade | 1 min |
-| **10** | Conclusão & Demonstração | Conclusão do Projeto & Demonstração Prática | 1m 30s |
+| **1** | Abertura | Capa do Projeto | 45s |
+| **2** | **Acesso ao Vivo** | PWA em Produção: QR Code & Link Online | 45s |
+| **3** | **Problema** | O Problema: Bloqueio Criativo e Riscos na Nuvem | 1m 15s |
+| **4** | **Solução** | A Solução: Lumi — Inteligente, Privado e Portátil | 1m 15s |
+| **5** | **Aplicativo** | O Aplicativo: PWA Moderno e Focado na Experiência (UX) | 1m 30s |
+| **6** | **Arquitetura** | Arquitetura de Software: Padrão Serverless BFF | 1m 30s |
+| **7** | **BD e /ou Web Service** | Persistência na Borda e Web Services RESTful | 1m 30s |
+| **8** | **IA (desenvolver)** | Engenharia de IA: Prompts, Schemas e Integração REST | 1m 30s |
+| **9** | Segurança & Privacidade | Segurança Criptográfica Zero-Knowledge (Argon2id + AES-GCM) | 1 min |
+| **10** | Qualidade & Engenharia | Bateria de Testes, Métricas e Confiabilidade | 1 min |
+| **11** | Conclusão & Demonstração | Conclusão do Projeto & Demonstração Prática | 1m 30s |
 
 ---
 
@@ -30,7 +31,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 ---
 
 ### Slide 1: Capa do Projeto
-- **Tempo estimado:** 45s a 1 min  
+- **Tempo estimado:** 45s  
 - **Elemento visual:** Título do Lumi com tags de tecnologias (React 19, TypeScript, TursoDB, Gemini, Argon2id, AES-256-GCM).
 
 #### 🗣️ O que falar:
@@ -45,7 +46,23 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 2: Problema
+### Slide 2: Acesso ao Vivo • PWA em Produção
+- **Tempo estimado:** 45s  
+- **Elemento visual:** QR Code de alta resolução em destaque, badge `● APLICAÇÃO DISPONÍVEL ONLINE`, link monoespaçado `https://lumi-gen.vercel.app/` e cartões informativos sobre PWA.
+
+#### 🗣️ O que falar:
+> "Antes de mergulharmos nos detalhes da arquitetura e da engenharia do sistema, convido a banca e os presentes a apontarem a câmera do celular para o **QR Code na tela**.
+>
+> A aplicação está 100% publicada e operacional na nuvem da Vercel no endereço `lumi-gen.vercel.app`. Como foi construída como uma Progressive Web App (PWA), ela abre instantaneamente no navegador do seu smartphone, sem precisar baixar nada de lojas de aplicativos.
+>
+> Fiquem à vontade para navegar e criar uma conta agora mesmo para acompanhar a experiência em tempo real enquanto apresento os próximos tópicos."
+
+#### 🎯 Destaque técnico:
+- Demonstração imediata de maturidade do projeto: software pronto, funcional, publicado e acessível de imediato.
+
+---
+
+### Slide 3: Problema
 - **Tempo estimado:** 1m 15s  
 - **Tópico Oficial:** **Problema**  
 - **Elemento visual:** 3 cartões abordando Bloqueio Criativo, Privacidade e Custos/Lock-in.
@@ -66,7 +83,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 3: Solução
+### Slide 4: Solução
 - **Tempo estimado:** 1m 15s  
 - **Tópico Oficial:** **Solução**  
 - **Elemento visual:** 3 pilares da solução Lumi: Ideação Estruturada, BYOK e Zero-Knowledge.
@@ -85,7 +102,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 4: Aplicativo
+### Slide 5: Aplicativo
 - **Tempo estimado:** 1m 30s  
 - **Tópico Oficial:** **Aplicativo (PWA & UX)**  
 - **Elemento visual:** 4 cartões com as telas: Geração de Ideias, Histórico com Filtros, Configurações e PWA/Dark Mode.
@@ -105,7 +122,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 5: Arquitetura
+### Slide 6: Arquitetura
 - **Tempo estimado:** 1m 30s  
 - **Tópico Oficial:** **Arquitetura de Software**  
 - **Elemento visual:** Diagrama de 3 camadas: PWA Client, Serverless BFF e Persistência/IA Externa.
@@ -122,7 +139,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 6: BD e /ou Web Service
+### Slide 7: BD e /ou Web Service
 - **Tempo estimado:** 1m 30s  
 - **Tópico Oficial:** **BD e /ou Web Service**  
 - **Elemento visual:** 2 blocos detalhados: TursoDB (Edge SQLite / Hrana v2) e Web Services Serverless (`/api/*`).
@@ -147,7 +164,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 7: IA (desenvolver)
+### Slide 8: IA (desenvolver)
 - **Tempo estimado:** 1m 45s  
 - **Tópico Oficial:** **IA (desenvolver)**  
 - **Elemento visual:** Engenharia de Prompt, Structured Outputs com JSON Schema e Integração REST.
@@ -174,7 +191,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 8: Segurança Zero-Knowledge & Criptografia
+### Slide 9: Segurança Zero-Knowledge & Criptografia
 - **Tempo estimado:** 1 min  
 - **Elemento visual:** Fluxo criptográfico: Senha -> Pepper -> Argon2id WASM -> vaultKeyHex -> AES-256-GCM -> TursoDB.
 
@@ -192,14 +209,14 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 9: Qualidade, Testes e Confiabilidade
+### Slide 10: Qualidade, Testes e Confiabilidade
 - **Tempo estimado:** 1 min  
-- **Elemento visual:** 3 métricas de destaque: 98 testes Vitest, 0 erros TypeScript, build em ~1.3s.
+- **Elemento visual:** 3 métricas de destaque: 101 testes Vitest, 0 erros TypeScript, build em ~1.3s.
 
 #### 🗣️ O que falar:
 > "A confiabilidade do Lumi foi garantida por engenharia de testes rigorosa:
 >
-> - Possuímos uma suíte com **98 testes automatizados passando no Vitest**, cobrindo todas as funções críticas: derivação de chaves criptográficas, verificação de adulteração de ciphertext no AES-GCM, isolamento de rotas no BFF e comunicação com a API do Gemini.
+> - Possuímos uma suíte com **101 testes automatizados passando no Vitest**, cobrindo todas as funções críticas: derivação de chaves criptográficas, verificação de adulteração de ciphertext no AES-GCM, isolamento de rotas no BFF e comunicação com a API do Gemini.
 > - O código possui tipagem estrita com **0 erros de compilação no TypeScript** (`tsc --noEmit`).
 > - O processo de build de produção com Vite leva apenas 1.3 segundos, gerando um bundle enxuto com Service Worker configurado para cache imediato dos recursos estáticos."
 
@@ -208,7 +225,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ---
 
-### Slide 10: Conclusão & Demonstração Prática
+### Slide 11: Conclusão & Demonstração Prática
 - **Tempo estimado:** 1m 30s  
 - **Elemento visual:** Diferenciais do projeto, 4 passos da demonstração ao vivo e **QR Code interativo com link direto para o PWA em produção na Vercel (`https://lumi-gen.vercel.app/`)**.
 
