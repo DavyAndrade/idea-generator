@@ -7,6 +7,10 @@ import {
   decifrarTexto,
   constantTimeEquals,
   verificarArgon2id,
+  gerarRecoveryCode,
+  derivarRecoveryKey,
+  cifrarRecoveryEnvelope,
+  decifrarRecoveryEnvelope,
 } from '@/lib/crypto';
 
 describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
@@ -178,6 +182,78 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
 
     it('retorna false para tamanhos diferentes', () => {
       expect(constantTimeEquals('abc', 'abcd')).toBe(false);
+    });
+  });
+
+  describe('gerarRecoveryCode', () => {
+    it('produz formato LUMI-XXXX-XXXX-XXXX-XXXX (16 bytes hex)', async () => {
+      const code = await gerarRecoveryCode();
+      expect(code).toMatch(/^LUMI-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
+    });
+
+    it('produz códigos diferentes a cada chamada (CSPRNG)', async () => {
+      const a = await gerarRecoveryCode();
+      const b = await gerarRecoveryCode();
+      expect(a).not.toBe(b);
+    });
+  });
+
+  describe('derivarRecoveryKey', () => {
+    it('produz hex de 64 chars (32 bytes / 256 bits)', async () => {
+      const code = await gerarRecoveryCode();
+      const key = await derivarRecoveryKey(code);
+      expect(key).toMatch(/^[0-9a-f]{64}$/);
+    });
+
+    it('produz a mesma chave para o mesmo recovery code (determinístico)', async () => {
+      const key = await gerarRecoveryCode();
+      const a = await derivarRecoveryKey(key);
+      const b = await derivarRecoveryKey(key);
+      expect(a).toBe(b);
+    });
+
+    it('produz chaves diferentes para códigos diferentes', async () => {
+      const a = await derivarRecoveryKey(await gerarRecoveryCode());
+      const b = await derivarRecoveryKey(await gerarRecoveryCode());
+      expect(a).not.toBe(b);
+    });
+
+    it('normaliza formatação (maiúsculas, hífens, espaços)', async () => {
+      const code = await gerarRecoveryCode();
+      // Mesmo código com formatação diferente deve produzir os resultados
+      const normalized = code.trim().toUpperCase();
+      const a = await derivarRecoveryKey(code);
+      const b = await derivarRecoveryKey(normalized);
+      expect(a).toBe(b);
+    });
+  });
+
+  describe('cifrarRecoveryEnvelope + decifrarRecoveryEnvelope', () => {
+    it('envelope decifra para o vaultKeyHex original', async () => {
+      const { vaultKeyHex } = await derivarChaves('Senha@123', await gerarSaltHex());
+      const recoveryCode = await gerarRecoveryCode();
+
+      const envelope = await cifrarRecoveryEnvelope(vaultKeyHex, recoveryCode);
+      const decifrado = await decifrarRecoveryEnvelope(envelope, recoveryCode);
+      expect(decifrado).toBe(vaultKeyHex);
+    });
+
+    it('recovery key errada falha ao decifrar envelope', async () => {
+      const { vaultKeyHex } = await derivarChaves('Senha@123', await gerarSaltHex());
+      const codeA = await gerarRecoveryCode();
+      const codeB = await gerarRecoveryCode();
+
+      const envelope = await cifrarRecoveryEnvelope(vaultKeyHex, codeA);
+      await expect(decifrarRecoveryEnvelope(envelope, codeB)).rejects.toThrow();
+    });
+
+    it('produz envelope diferente a cada chamada (IV aleatório)', async () => {
+      const { vaultKeyHex } = await derivarChaves('Senha@123', await gerarSaltHex());
+      const recoveryCode = await gerarRecoveryCode();
+
+      const a = await cifrarRecoveryEnvelope(vaultKeyHex, recoveryCode);
+      const b = await cifrarRecoveryEnvelope(vaultKeyHex, recoveryCode);
+      expect(a).not.toBe(b);
     });
   });
 });

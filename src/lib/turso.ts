@@ -168,14 +168,6 @@ export async function initTurso(): Promise<void> {
   await pipeline([
     {
       sql: `
-        CREATE TABLE IF NOT EXISTS configuracoes (
-          chave TEXT PRIMARY KEY,
-          valor TEXT NOT NULL
-        )
-      `,
-    },
-    {
-      sql: `
         CREATE TABLE IF NOT EXISTS ideias (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           usuario_id INTEGER,

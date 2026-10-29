@@ -75,3 +75,19 @@ export function extrairSaltDePHC(phc: string): string {
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 }
+
+/// Deriva hash determinístico do código de recuperação para validação no servidor (HMAC-SHA256)
+export async function derivarRecoveryCodeHash(recoveryCode: string): Promise<string> {
+  const cleanCode = recoveryCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode('lumi-recovery-hash-salt-v1'),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(cleanCode));
+  return Array.from(new Uint8Array(sig))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}

@@ -10,14 +10,28 @@ export async function PATCH(req: Request): Promise<Response> {
       return errorResponse('Não autorizado', 401);
     }
 
-    const body = (await req.json()) as { nome?: string };
-    const nome = body.nome?.trim();
-    if (!nome) {
-      return errorResponse('Nome inválido', 400);
+    const body = (await req.json()) as {
+      nome?: string;
+      recoveryEnvelope?: string;
+      recoveryEnvelop?: string;
+    };
+
+    if (body.nome?.trim()) {
+      await execute('UPDATE usuarios SET nome = ? WHERE id = ?', [
+        body.nome.trim(),
+        auth.userId,
+      ]);
     }
 
-    await execute('UPDATE usuarios SET nome = ? WHERE id = ?', [nome, auth.userId]);
-    return json({ ok: true, nome });
+    const envelope = body.recoveryEnvelope || body.recoveryEnvelop;
+    if (envelope) {
+      await execute(
+        'UPDATE usuarios SET recovery_envelope = ? WHERE id = ?',
+        [envelope, auth.userId]
+      );
+    }
+
+    return json({ ok: true, nome: body.nome?.trim() });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     return errorResponse(`Erro ao atualizar perfil: ${msg}`, 500);

@@ -142,6 +142,8 @@ export async function initTursoServer(): Promise<void> {
       credencial_hash TEXT NOT NULL,
       gemini_key_cifrada TEXT,
       gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
+      recovery_envelope TEXT, -- AES-256-GCM envelope do vaultKey, cifrado com recoveryKey (zero-knowledge)
+      recovery_code_hash TEXT, -- hash do código de recuperação (para validação server-side)
       criado_em TEXT NOT NULL
     );
   `);
@@ -156,6 +158,17 @@ export async function initTursoServer(): Promise<void> {
       categoria TEXT NOT NULL,
       prompt_usado TEXT,
       favorito INTEGER NOT NULL DEFAULT 0,
+      criado_em TEXT NOT NULL
+    );
+  `);
+
+  await execute(`
+    CREATE TABLE IF NOT EXISTS tokens_recuperacao (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
+      token_hash TEXT NOT NULL,
+      expira_em TEXT NOT NULL,
+      usado INTEGER NOT NULL DEFAULT 0,
       criado_em TEXT NOT NULL
     );
   `);

@@ -3,6 +3,7 @@
 // - derivarChaves: Argon2id (via hash-wasm) + Pepper (HMAC-SHA256) → PHC string + vaultKeyHex (64 chars)
 // - cifrarTexto/decifrarTexto: AES-256-GCM com IV aleatório por operação
 // - constantTimeEquals: comparação que não vaza timing
+// - gerarRecoveryCode / derivarRecoveryKey / cifrarRecoveryEnvelope / decifrarRecoveryEnvelope: envelope criptográfico para recuperação de senha zero-knowledge
 // Web Crypto API + hash-wasm — usa PHC oficial para authHash, vaultKeyHex opaco
 import { argon2id, argon2Verify } from "hash-wasm";
 
@@ -212,4 +213,42 @@ export function constantTimeEquals(a: string, b: string): boolean {
     diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
   return diff === 0;
+}
+
+/// Gera um código de recuperação legível de 16 bytes (ex: LUMI-2DF5-7C33-2043-280E).
+/// Exibido ao usuário no cadastro para anotação em local seguro.
+export async function gerarRecoveryCode(): Promise<string> {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  const hex = bufToHex(bytes.buffer as ArrayBuffer).toUpperCase();
+  return `LUMI-${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}`;
+}
+
+/// Deriva uma chave de recuperação determinística (64 hex chars / 256 bits) do código de recuperação via HMAC-SHA256.
+/// Como o recoveryCode já possui 128 bits de entropia aleatória (CSPRNG), HMAC com separador de domínio é seguro e determinístico.
+export async function derivarRecoveryKey(recoveryCode: string): Promise<string> {
+  const cleanCode = recoveryCode.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode('lumi-recovery-domain-key-v1'),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(cleanCode));
+  return bufToHex(sig);
+}
+
+/// Cifra o vaultKeyHex usando uma chave derivada do recoveryCode.
+/// Retorna hex: iv + ciphertext + tag (formato AES-256-GCM).
+/// O envelope é armazenado no servidor (`recovery_envelope` em `usuarios`).
+export async function cifrarRecoveryEnvelope(vaultKeyHex: string, recoveryCode: string): Promise<string> {
+  const recoveryKeyHex = await derivarRecoveryKey(recoveryCode);
+  return cifrarTexto(vaultKeyHex, recoveryKeyHex);
+}
+
+/// Decifra o envelope de recuperação para obter o vaultKeyHex original.
+/// Permite ao usuário recuperar o acesso às ideias criptografadas após redefinir a senha.
+export async function decifrarRecoveryEnvelope(envelopeHex: string, recoveryCode: string): Promise<string> {
+  const recoveryKeyHex = await derivarRecoveryKey(recoveryCode);
+  return decifrarTexto(envelopeHex, recoveryKeyHex);
 }

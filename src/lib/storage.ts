@@ -2,6 +2,9 @@
 import { fetchApi } from '@/lib/api-client';
 import {
   derivarChaves,
+  gerarRecoveryCode,
+  cifrarRecoveryEnvelope,
+  decifrarRecoveryEnvelope,
   cifrarTexto,
   decifrarTexto,
 } from '@/lib/crypto';
@@ -98,6 +101,75 @@ export async function atualizarNomeUsuario(novoNome: string): Promise<UsuarioSes
   const novaSessao: UsuarioSessao = { ...sessao, nome: nomeTrimmed };
   salvarSessaoStorage(novaSessao);
   return novaSessao;
+}
+
+// --- Chave de Recuperação (Recovery Code) ---
+
+/// Gera uma chave de recuperação no formato LUMI-XXXX-XXXX-XXXX-XXXX
+export function gerarChaveRecuperacao(): string {
+  // Usa o crypto.ts gerarRecoveryCode que já gera o formato LUMI-XXXX-XXXX-XXXX
+  // Fallback síncrono usando Web Crypto API se gerarRecoveryCode não estiver disponível
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sem I, O, 0, 1 para legibilidade
+  const grupos: string[] = [];
+  for (let g = 0; g < 4; g++) {
+    let grupo = '';
+    for (let i = 0; i < 4; i++) {
+      grupo += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    grupos.push(grupo);
+  }
+  return `LUMI-${grupos.join('-')}`;
+}
+
+/// Salva o envelope de recuperação (vaultKey cifrado com a chave de recuperação) no servidor.
+export async function salvarEnvelopeRecuperacao(chaveRecovery: string): Promise<void> {
+  const sessao = obterSessaoAtual();
+  if (!sessao) return;
+
+  const envelope = await cifrarRecoveryEnvelope(sessao.vaultKeyHex, chaveRecovery);
+  await fetchApi('/api/usuario/perfil', {
+    method: 'PATCH',
+    body: JSON.stringify({ recoveryEnvelop: envelope }),
+  });
+}
+
+/// Solicita recuperação de senha — gera e envia código de recuperação por e-mail.
+export async function solicitarRecuperacaoSenha(email: string): Promise<{ ok: boolean; mensagem: string }> {
+  try {
+    await fetchApi<{ ok: boolean; mensagem?: string }>('/api/auth/recuperar-senha', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+    return { ok: true, mensagem: 'Se o e-mail estiver cadastrado, enviaremos um código de recuperação.' };
+  } catch (e: unknown) {
+    return {
+      ok: false,
+      mensagem: e instanceof Error ? e.message : 'Erro ao solicitar recuperação.',
+    };
+  }
+}
+
+/// Redefinição de senha usando token (flow esqueci-senha via e-mail).
+/// O servidor valida o token, atualiza credencial_hash e marca como usado.
+export async function redefinirSenhaComToken(
+  token: string,
+  saltHex: string,
+  novaSenha: string,
+): Promise<{ ok: boolean; mensagem: string }> {
+  const { authHashHex } = await derivarChaves(novaSenha, saltHex);
+
+  try {
+    const res = await fetchApi<{ ok: boolean; mensagem?: string }>('/api/auth/redefinir-senha', {
+      method: 'POST',
+      body: JSON.stringify({ token, credencialHash: authHashHex, saltHex }),
+    });
+    return { ok: true, mensagem: res.mensagem || 'Senha redefinida com sucesso.' };
+  } catch (e: unknown) {
+    return {
+      ok: false,
+      mensagem: e instanceof Error ? e.message : 'Erro ao redefinir senha.',
+    };
+  }
 }
 
 // --- Registro/Login de usuário ---

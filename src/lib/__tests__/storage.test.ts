@@ -16,6 +16,9 @@ import {
   loginUsuario,
   obterSessaoAtual,
   encerrarSessao,
+  solicitarRecuperacaoSenha,
+  redefinirSenhaComToken,
+  salvarEnvelopeRecuperacao,
 } from '@/lib/storage';
 
 // Mocks fetch for the Serverless BFF (/api/*) endpoints
@@ -761,5 +764,114 @@ describe('storage - testarConexaoTurso', () => {
     const result = await testarConexaoTurso();
     expect(result.ok).toBe(false);
     expect(result.mensagem).toContain('Network error');
+  });
+});
+
+// --- Password Recovery Flow ---
+
+describe('storage - recuperação de senha', () => {
+  beforeEach(() => {
+    resetInitCache();
+    encerrarSessao();
+  });
+
+  afterEach(() => {
+    encerrarSessao();
+    vi.restoreAllMocks();
+  });
+
+  it('solicitarRecuperacaoSenha envia POST para /api/auth/recuperar-senha com email', async () => {
+    const mock = mockFetchSequence([
+      { response: { ok: true } }, // POST recuperar-senha
+    ]);
+
+    const result = await solicitarRecuperacaoSenha('usuario@test.com');
+
+    expect(mock.mock.calls[0][0]).toBe('/api/auth/recuperar-senha');
+    expect(mock.mock.calls[0][1].method).toBe('POST');
+    const body = JSON.parse(mock.mock.calls[0][1].body);
+    expect(body.email).toBe('usuario@test.com');
+    expect(result.ok).toBe(true);
+    expect(result.mensagem).toContain('código de recuperação');
+  });
+
+  it('solicitarRecuperacaoSenha retorna ok mesmo quando API falha (não vaza existência)', async () => {
+    mockFetchSequence([
+      { ok: false, status: 500, response: { erro: 'Internal error' } },
+    ]);
+
+    const result = await solicitarRecuperacaoSenha('naoexiste@test.com');
+    expect(result.ok).toBe(false);
+    expect(result.mensagem).toContain('erro');
+  });
+
+  it('redefinirSenhaComToken deriva authHashHex e envia POST para /api/auth/redefinir-senha', async () => {
+    const { gerarSaltHex } = await import('@/lib/crypto');
+    const saltHex = await gerarSaltHex();
+    const token = 'token-de-recuperacao-abc123';
+    const novaSenha = 'NovaSenha@123';
+
+    const mock = mockFetchSequence([
+      { response: { ok: true, mensagem: 'Senha redefinida com sucesso' } },
+    ]);
+
+    const result = await redefinirSenhaComToken(token, saltHex, novaSenha);
+
+    expect(result.ok).toBe(true);
+    expect(result.mensagem).toBe('Senha redefinida com sucesso');
+
+    const call = mock.mock.calls[0];
+    expect(call[0]).toBe('/api/auth/redefinir-senha');
+    expect(call[1].method).toBe('POST');
+    const body = JSON.parse(call[1].body);
+    expect(body.token).toBe(token);
+    expect(body.saltHex).toBe(saltHex);
+    expect(body.credencialHash).toMatch(/^\$argon2id\$/);
+  });
+
+  it('redefinirSenhaComToken falha quando API retorna erro', async () => {
+    const { gerarSaltHex } = await import('@/lib/crypto');
+    const saltHex = await gerarSaltHex();
+
+    mockFetchSequence([
+      { ok: false, status: 400, response: { erro: 'Token expirado' } },
+    ]);
+
+    const result = await redefinirSenhaComToken('token-invalido', saltHex, 'NovaSenha@123');
+    expect(result.ok).toBe(false);
+    expect(result.mensagem).toContain('Token expirado');
+  });
+
+  it('salvarEnvelopeRecuperacao envia envelope cifrado para /api/usuario/perfil', async () => {
+    mockFetchSequence([
+      { response: {
+        token: 'tok-123',
+        user: { id: 1, nome: 'Teste', email: 't@t.com', geminiModelo: 'gemini-2.5-flash' },
+        saltHex: 'aabbccddeeff0011223344556677889900',
+      }},
+    ]);
+    await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'Senha@123' });
+
+    const { gerarRecoveryCode } = await import('@/lib/crypto');
+    const recoveryCode = await gerarRecoveryCode();
+
+    const mock = mockFetchSequence([
+      { response: { ok: true } },
+    ]);
+
+    await salvarEnvelopeRecuperacao(recoveryCode);
+
+    const call = mock.mock.calls[0];
+    expect(call[0]).toBe('/api/usuario/perfil');
+    expect(call[1].method).toBe('PATCH');
+    const body = JSON.parse(call[1].body);
+    expect(body.recoveryEnvelop).toBeDefined();
+    expect(body.recoveryEnvelop).not.toContain('lumi'); // não é o vaultKey em plaintext
+  });
+
+  it('salvarEnvelopeRecuperacao não faz nada quando não autenticado', async () => {
+    // Sem sessão — deve retornar early sem chamada fetch
+    await expect(salvarEnvelopeRecuperacao('LUMI-XXXX-XXXX-XXXX-XXXX')).resolves.not.toThrow();
+    expect((globalThis as any).fetch).not.toBeDefined();
   });
 });

@@ -4,10 +4,17 @@ import { Eye, EyeOff, Check, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./ui/card";
-import { registrarUsuario, loginUsuario } from "../lib/storage";
-import type { UsuarioSessao } from "../types";
+import { ModalChaveRecuperacao } from "./modal-chave-recuperacao";
+import {
+  registrarUsuario,
+  loginUsuario,
+  gerarChaveRecuperacao,
+  salvarEnvelopeRecuperacao,
+  solicitarRecuperacaoSenha,
+} from "@/lib/storage";
+import type { UsuarioSessao } from "@/types";
 
-type Modo = "entrar" | "criar";
+type Modo = "entrar" | "criar" | "esqueci";
 
 interface TelaAuthProps {
   onAutenticado: (sessao: UsuarioSessao) => void;
@@ -35,6 +42,10 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  // Modal de chave de recuperação
+  const [mostrarModalRecuperacao, setMostrarModalRecuperacao] = useState(false);
+  const [chaveRecuperacao, setChaveRecuperacao] = useState("");
+
   const limparErro = () => setErro(null);
 
   const alternarModo = () => {
@@ -49,6 +60,13 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
   const todasSenhasOk = senhasValidas.every(Boolean);
 
   const validar = (): string | null => {
+    if (modo === "esqueci") {
+      if (!email.trim()) return "Digite seu e-mail.";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+        return "E-mail inválido.";
+      return null;
+    }
+
     if (!email.trim()) return "Digite seu e-mail.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
       return "E-mail inválido.";
@@ -58,18 +76,39 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
       return null;
     }
 
-    // modo === "criar"
     if (!nome.trim()) return "Digite seu nome.";
     if (!senha) return "Digite uma senha.";
-    if (!todasSenhasOk) {
-      return "A senha não atende a todos os requisitos de segurança.";
-    }
+    if (!todasSenhasOk) return "A senha não atende a todos os requisitos de segurança.";
     return null;
   };
 
   const submeter = async (e: React.FormEvent) => {
     e.preventDefault();
     limparErro();
+
+    if (modo === "esqueci") {
+      const valido = validar();
+      if (valido) {
+        setErro(valido);
+        return;
+      }
+      setCarregando(true);
+      try {
+        const r = await solicitarRecuperacaoSenha(email.trim());
+        if (!r.ok) {
+          setErro(r.mensagem);
+        } else {
+          setErro(null);
+          alert(r.mensagem);
+          setModo("entrar");
+        }
+      } catch (e: unknown) {
+        setErro(e instanceof Error ? e.message : "Erro ao solicitar recuperação.");
+      } finally {
+        setCarregando(false);
+      }
+      return;
+    }
 
     const valido = validar();
     if (valido) {
@@ -87,7 +126,21 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
               email: email.trim(),
               senha,
             });
-      onAutenticado(sessao);
+
+      if (modo === "criar") {
+        // Gera e salva a chave de recuperação após registro
+        const chave = gerarChaveRecuperacao();
+        setChaveRecuperacao(chave);
+        try {
+          await salvarEnvelopeRecuperacao(chave);
+        } catch {
+          // Fallback: chave gerada mas não salva no servidor — usuário deve anotar
+        }
+        onAutenticado(sessao);
+        setMostrarModalRecuperacao(true);
+      } else {
+        onAutenticado(sessao);
+      }
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : "Erro ao autenticar.");
     } finally {
@@ -95,132 +148,189 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
     }
   };
 
-  return (
-    <main className="flex flex-1 items-center justify-center p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>
-            {modo === "entrar" ? "Entrar no Lumi" : "Criar conta no Lumi"}
-          </CardTitle>
-          <CardDescription>
-            {modo === "entrar"
-              ? "Acesse sua conta para sincronizar suas ideias e chave de API."
-              : "Crie sua conta para iluminar novas ideias com IA."}
-          </CardDescription>
-        </CardHeader>
+  const handleFecharModalRecuperacao = () => {
+    setMostrarModalRecuperacao(false);
+    // Após fechar o modal, o usuário continua na tela principal
+  };
 
-        <CardContent>
-          <form onSubmit={submeter} className="space-y-4">
-            {modo === "criar" && (
+  return (
+    <>
+      <main className="flex flex-1 items-center justify-center p-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>
+              {modo === "entrar"
+                ? "Entrar no Lumi"
+                : modo === "criar"
+                ? "Criar conta no Lumi"
+                : "Esqueci a senha"}
+            </CardTitle>
+            <CardDescription>
+              {modo === "entrar"
+                ? "Acesse sua conta para sincronizar suas ideias e chave de API."
+                : modo === "criar"
+                ? "Crie sua conta para iluminar novas ideias com IA."
+                : "Digite seu e-mail para receber instruções de recuperação."}
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={submeter} className="space-y-4">
+              {modo === "criar" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Nome</label>
+                  <Input
+                    type="text"
+                    placeholder="Seu nome"
+                    value={nome}
+                    onChange={(e) => setNome(e.target.value)}
+                    disabled={carregando}
+                    autoComplete="name"
+                  />
+                </div>
+              )}
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Nome</label>
+                <label className="text-sm font-medium">E-mail</label>
                 <Input
-                  type="text"
-                  placeholder="Seu nome"
-                  value={nome}
-                  onChange={(e) => setNome(e.target.value)}
+                  type="email"
+                  placeholder="voce@exemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={carregando}
-                  autoComplete="name"
+                  autoComplete={modo === "entrar" ? "username" : "email"}
                 />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">E-mail</label>
-              <Input
-                type="email"
-                placeholder="voce@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={carregando}
-                autoComplete={modo === "entrar" ? "username" : "email"}
-              />
-            </div>
+              {modo !== "esqueci" && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Senha</label>
+                  <div className="relative">
+                    <Input
+                      type={mostrarSenha ? "text" : "password"}
+                      placeholder="Sua senha"
+                      value={senha}
+                      onChange={(e) => setSenha(e.target.value)}
+                      disabled={carregando}
+                      autoComplete={
+                        modo === "entrar" ? "current-password" : "new-password"
+                      }
+                    />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                      onClick={() => setMostrarSenha(!mostrarSenha)}
+                      aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
+                      aria-pressed={mostrarSenha}
+                    >
+                      {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Senha</label>
-              <div className="relative">
-                <Input
-                  type={mostrarSenha ? "text" : "password"}
-                  placeholder="Sua senha"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                  disabled={carregando}
-                  autoComplete={modo === "entrar" ? "current-password" : "new-password"}
-                />
+                  {modo === "criar" && senha && (
+                    <ul className="mt-2 space-y-1 text-xs">
+                      {REQUISITOS_SENHA.map((r, i) => {
+                        const ok = senhasValidas[i];
+                        return (
+                          <li
+                            key={r.label}
+                            className="flex items-center gap-1 text-muted-foreground"
+                          >
+                            {ok ? (
+                              <Check size={12} className="text-green-500" />
+                            ) : (
+                              <X size={12} className="text-red-500" />
+                            )}
+                            <span
+                              className={ok ? "text-green-600" : "text-red-600"}
+                            >
+                              {r.label}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              )}
+
+              {erro && <p className="text-sm text-destructive">{erro}</p>}
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={carregando || (modo === "criar" && !todasSenhasOk)}
+              >
+                {carregando
+                  ? modo === "entrar"
+                    ? "Entrando..."
+                    : modo === "criar"
+                    ? "Criando conta..."
+                    : "Enviando..."
+                  : modo === "entrar"
+                  ? "Entrar"
+                  : modo === "criar"
+                  ? "Criar conta"
+                  : "Enviar link de recuperação"}
+              </Button>
+            </form>
+
+            <div className="mt-4 flex justify-center">
+              {modo === "esqueci" ? (
                 <button
                   type="button"
-                  tabIndex={-1}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
-                  onClick={() => setMostrarSenha(!mostrarSenha)}
-                  aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
-                  aria-pressed={mostrarSenha}
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => {
+                    setModo("entrar");
+                    setErro(null);
+                  }}
+                  disabled={carregando}
                 >
-                  {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+                  ← Voltar para entrar
                 </button>
-              </div>
-
-              {modo === "criar" && senha && (
-                <ul className="mt-2 space-y-1 text-xs">
-                  {REQUISITOS_SENHA.map((r, i) => {
-                    const ok = senhasValidas[i];
-                    return (
-                      <li
-                        key={r.label}
-                        className="flex items-center gap-1 text-muted-foreground"
-                      >
-                        {ok ? (
-                          <Check size={12} className="text-green-500" />
-                        ) : (
-                          <X size={12} className="text-red-500" />
-                        )}
-                        <span
-                          className={
-                            ok
-                            ? "text-green-600"
-                            : "text-red-600"
-                          }
-                        >
-                          {r.label}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
+              ) : (
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => {
+                    setModo(modo === "criar" ? "entrar" : "criar");
+                    setErro(null);
+                  }}
+                  disabled={carregando}
+                >
+                  {modo === "criar"
+                    ? "Já tem conta? Entrar"
+                    : "Não tem conta? Criar conta"}
+                </button>
               )}
             </div>
 
-            {erro && (
-              <p className="text-sm text-destructive">{erro}</p>
+            {modo === "entrar" && (
+              <button
+                type="button"
+                className="mt-2 block w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setModo("esqueci");
+                  setNome("");
+                  setSenha("");
+                  setErro(null);
+                }}
+                disabled={carregando}
+              >
+                Esqueci minha senha
+              </button>
             )}
+          </CardContent>
+        </Card>
+      </main>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={carregando || (modo === "criar" && !todasSenhasOk)}
-            >
-              {carregando
-                ? modo === "entrar"
-                  ? "Entrando..."
-                  : "Criando conta..."
-                : modo === "entrar"
-                  ? "Entrar"
-                  : "Criar conta"}
-            </Button>
-          </form>
-
-          <button
-            type="button"
-            className="mt-4 w-full text-center text-sm text-primary hover:underline"
-            onClick={alternarModo}
-            disabled={carregando}
-          >
-            {modo === "entrar"
-              ? "Não tem conta? Criar conta"
-              : "Já tem conta? Entrar"}
-          </button>
-        </CardContent>
-      </Card>
-    </main>
+      <ModalChaveRecuperacao
+        open={mostrarModalRecuperacao}
+        onOpenChange={setMostrarModalRecuperacao}
+        chaveRecuperacao={chaveRecuperacao}
+        onClose={handleFecharModalRecuperacao}
+      />
+    </>
   );
 }

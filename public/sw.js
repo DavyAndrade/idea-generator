@@ -1,5 +1,5 @@
 // Service worker PWA: network-first com fallback para cache offline
-const CACHE_NAME = 'gerador-ideias-shell-v2';
+const CACHE_NAME = 'gerador-ideias-shell-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
