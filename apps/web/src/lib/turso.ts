@@ -12,10 +12,13 @@ export function getEnv(key: string): string | undefined {
 }
 
 function getBaseUrl(): string | null {
-  const raw = getEnv('VITE_TURSO_DATABASE_URL');
+  const raw = getEnv('VITE_TURSO_DATABASE_URL')?.trim();
   if (!raw) return null;
-  // libsql://nome.turso.io → https://nome.turso.io
-  return raw.replace(/^libsql:/, 'https:');
+  // libsql://, turso:// ou wss:// → https://
+  return raw
+    .replace(/^(libsql|turso|wss):\/\//i, 'https://')
+    .replace(/^ws:\/\//i, 'http://')
+    .replace(/\/+$/, '');
 }
 
 function getToken(): string | null {

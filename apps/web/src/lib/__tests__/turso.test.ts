@@ -25,12 +25,15 @@ afterEach(() => {
 });
 
 describe('turso cliente HTTP', () => {
-  it('converte libsql:// para https:// na URL', async () => {
+  it('converte libsql:// e turso:// para https:// na URL', async () => {
     const mock = mockFetch({ results: [{ result: { rows: [], cols: [] } }] });
     await execute('SELECT 1');
 
-    const call = mock.mock.calls[0];
-    expect(call[0]).toBe('https://test-db.turso.io/v2/pipeline');
+    expect(mock.mock.calls[0][0]).toBe('https://test-db.turso.io/v2/pipeline');
+
+    process.env.VITE_TURSO_DATABASE_URL = 'turso://idea-gen.aws-us-east-1.turso.io/';
+    await execute('SELECT 1');
+    expect(mock.mock.calls[1][0]).toBe('https://idea-gen.aws-us-east-1.turso.io/v2/pipeline');
   });
 
   it('envia header Authorization Bearer', async () => {

@@ -11,9 +11,10 @@ export { testarConexaoTurso } from '@/lib/turso';
 let initPromise: Promise<void> | null = null;
 function ensureInit(): Promise<void> {
   if (!initPromise) {
-    initPromise = initTurso().catch(() => {
+    initPromise = initTurso().catch((err) => {
       initPromise = null;
-      throw new Error('Não foi possível inicializar o banco Turso');
+      const msg = err instanceof Error ? err.message : String(err);
+      throw new Error(`Não foi possível inicializar o banco Turso (${msg})`);
     });
   }
   return initPromise!;
