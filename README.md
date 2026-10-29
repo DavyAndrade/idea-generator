@@ -33,12 +33,14 @@ Não há backend próprio — o app fala direto com Gemini e Turso.
 
 O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente nem é armazenada no servidor.
 
-1. **Registro:** `registrarUsuario({ nome, email, senha })`:
+1. **Registro (`TelaAuth` + `registrarUsuario({ nome, email, senha })`)**:
+   - **Política de senha forte** validada em tempo real no cadastro: mínimo de **8 caracteres**, **1 letra maiúscula**, **1 letra minúscula**, **1 número** e **1 caractere especial**.
    - Gera `salt` aleatório (16 bytes hex) via `crypto.getRandomValues`
    - Deriva `authHashHex` e `vaultKeyHex` via **PBKDF2-SHA256** (100.000 iterações, 512 bits)
    - `authHashHex` (64 hex chars, 256 bits, sem prefixos) → armazenado como `credencial_hash` no banco
    - `vaultKeyHex` (64 hex chars, 256 bits) → mantida apenas em memória/sessionStorage (nunca persistida)
    - A chave Gemini do usuário é **criptografada com AES-256-GCM** usando `vaultKeyHex` antes de ser salva como `gemini_key_cifrada`
+   - **Isolamento de ideias por conta (`usuario_id`)**: todas as ideias salvas, listadas, favoritadas ou excluídas ficam vinculadas exclusivamente ao `usuario_id` da conta logada.
 
 2. **Login:** `loginUsuario({ email, senha })`:
    - Busca o `salt` e `credencial_hash` do usuário pelo email

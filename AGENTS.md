@@ -47,6 +47,7 @@ Zero-knowledge authentication via Web Crypto API (nunca expõe algoritmo no hash
 
 - `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves()` (PBKDF2-SHA256 → authHashHex + vaultKeyHex, ambas 64 hex chars), `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
 - `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
+- `components/tela-auth.tsx`: exige senha forte no cadastro (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial) com checklist em tempo real.
 
 ## TursoDB
 
