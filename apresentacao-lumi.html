@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lumi - Apresentação do Projeto</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: 16in 9in;
+      margin: 0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #090a0f;
+      color: #f1f5f9;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .slide {
+      width: 16in;
+      height: 9in;
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 3rem 4rem;
+      background: radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+                  radial-gradient(circle at 10% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+                  #0b0f19;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Header & Footer */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 1.25rem;
+    }
+
+    .slide-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      padding: 0.4rem 0.9rem;
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #818cf8;
+      letter-spacing: 0.05em;
+    }
+
+    .slide-category {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 1rem;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    /* Content Area */
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1.5rem 0;
+    }
+
+    h1.hero-title {
+      font-size: 4rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #ffffff 40%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    h2.slide-heading {
+      font-size: 2.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 0.5rem;
+    }
+
+    p.slide-subheading {
+      font-size: 1.25rem;
+      color: #94a3b8;
+      max-width: 900px;
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1.25rem;
+      padding: 1.75rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .card.highlight {
+      border-color: rgba(99, 102, 241, 0.4);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .card h3 {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .card p, .card li {
+      font-size: 1rem;
+      color: #cbd5e1;
+      line-height: 1.55;
+    }
+
+    .card ul {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .card ul li::before {
+      content: "✦";
+      color: #818cf8;
+      display: inline-block;
+      margin-right: 0.6rem;
+      font-weight: bold;
+    }
+
+    /* Badges & Tags */
+    .badge-pill {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.08);
+      color: #e2e8f0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .badge-primary {
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.4);
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.2);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    /* Code & Mono */
+    .mono-box {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      color: #93c5fd;
+      line-height: 1.5;
+    }
+
+    .stat-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #818cf8;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 0.95rem;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SLIDE 1: CAPA -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">Engenharia de Software • Projeto de Graduação</div>
+    </div>
+    <div class="slide-content">
+      <div style="max-width: 1000px;">
+        <span class="badge-pill badge-primary" style="margin-bottom: 1.25rem;">PROJETO FULL-STACK MODERNO</span>
+        <h1 class="hero-title">Lumi: Iluminando Ideias com Inteligência Artificial e Privacidade</h1>
+        <p class="slide-subheading" style="font-size: 1.4rem;">
+          PWA responsivo integrado ao Google Gemini via BYOK, arquitetura Serverless BFF e criptografia ponta a ponta Zero-Knowledge.
+        </p>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem;">
+          <span class="badge-pill">React 19</span>
+          <span class="badge-pill">TypeScript</span>
+          <span class="badge-pill">Vite</span>
+          <span class="badge-pill">Tailwind CSS v4</span>
+          <span class="badge-pill">TursoDB (Hrana v2)</span>
+          <span class="badge-pill">Gemini REST</span>
+          <span class="badge-pill">Argon2id (WASM)</span>
+          <span class="badge-pill">AES-256-GCM</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Autor: <strong>Davy Andrade</strong></div>
+      <div>Apresentação Acadêmica • 2026</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 2: MOTIVAÇÃO E PROPOSTA -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">01 • Introdução & Problema</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">O Desafio Criativo e a Privacidade na Nuvem</h2>
+      <p class="slide-subheading">Como gerar ideias originais com IA sem expor segredos industriais ou custos de infraestrutura.</p>
+      
+      <div class="grid-3">
+        <div class="card">
+          <h3>⚡ O Bloqueio Criativo</h3>
+          <p>Profissionais e estudantes frequentemente enfrentam dificuldades para estruturar ideias de novos aplicativos, conteúdos, modelos de negócios e ferramentas open source do zero.</p>
+        </div>
+        <div class="card">
+          <h3>🔒 Dilema da Privacidade</h3>
+          <p>Ferramentas convencionais de IA na nuvem exigem envio de dados em texto claro para servidores de terceiros, comprometendo a propriedade intelectual de novas iniciativas.</p>
+        </div>
+        <div class="card highlight">
+          <h3>💡 A Solução Lumi</h3>
+          <p>Um PWA portátil e veloz que consome a IA de ponta do Google Gemini com <strong>Bring Your Own Key (BYOK)</strong> e banco de dados SQLite distribuído na borda, com isolamento e criptografia E2E.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Gerador de Ideias Criativas</div>
+      <div>Página 2</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 3: ARQUITETURA DE SOFTWARE -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">02 • Arquitetura do Sistema</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Arquitetura Serverless BFF (Backend-For-Frontend)</h2>
+      <p class="slide-subheading">Separação estrita de camadas para garantir segurança e zero vazamento de credenciais.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🖥️ Cliente (PWA React 19)</h3>
+          <ul>
+            <li><strong>UI Responsiva:</strong> Tailwind CSS v4, tokens de design e componentes shadcn/ui.</li>
+            <li><strong>Portabilidade PWA:</strong> Service Worker com cache-first e manifest instalável.</li>
+            <li><strong>Comunicação Unificada:</strong> Cliente nunca fala diretamente com o banco de dados; todas as operações trafegam via <code>/api/*</code>.</li>
+            <li><strong>Zero Segredos no Browser:</strong> Tokens de banco e chaves de serviço ficam 100% blindados fora do bundle client-side.</li>
+          </ul>
+        </div>
+        <div class="card highlight">
+          <h3>☁️ BFF Serverless & TursoDB</h3>
+          <ul>
+            <li><strong>Vercel Serverless Functions:</strong> Rotas <code>/api/auth/*</code>, <code>/api/ideias</code> e <code>/api/usuario/*</code> com Web Fetch API padrão.</li>
+            <li><strong>TursoDB Edge Engine:</strong> Conexão ultra rápida via HTTP Pipeline v2 (protocolo Hrana v2 sobre HTTPS), dispensando dependências C nativas.</li>
+            <li><strong>Proxy de Dev Vite:</strong> Interceptador dinâmico em desenvolvimento espelhando o comportamento de produção serverless.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Arquitetura de Software</div>
+      <div>Página 3</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 4: SEGURANÇA ZERO-KNOWLEDGE -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">03 • Engenharia de Segurança</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Segurança Criptográfica Zero-Knowledge</h2>
+      <p class="slide-subheading">O servidor armazena dados, mas é matematicamente incapaz de ler o conteúdo protegido.</p>
+
+      <div class="grid-3">
+        <div class="card">
+          <h3>🔐 Argon2id (WASM)</h3>
+          <p>Derivação no navegador via WebAssembly (19 MiB RAM, 3 iterações). Gera hash no formato canônico PHC padrão OWASP e chave simétrica <code>vaultKeyHex</code> (256 bits).</p>
+        </div>
+        <div class="card">
+          <h3>🛡️ HMAC-SHA256 Pepper</h3>
+          <p>Camada secreta adicional mantida no servidor para enriquecer a senha antes da derivação, inviabilizando rainbow tables e ataques de força bruta offline.</p>
+        </div>
+        <div class="card">
+          <h3>🔑 AES-256-GCM E2E</h3>
+          <p>Chave Gemini e dados de ideias (descrição e tema) são cifrados no cliente com vetor de inicialização (IV) aleatório de 96 bits por registro. Ciphertext único sempre.</p>
+        </div>
+      </div>
+
+      <div class="mono-box" style="margin-top: 1.5rem;">
+        Fluxo E2E: Senha do Usuário ➔ Pepper (HMAC) ➔ Argon2id ➔ vaultKeyHex (256 bits) ➔ AES-256-GCM (Ciphertext) ➔ TursoDB
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Segurança & Criptografia</div>
+      <div>Página 4</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 5: INTEGRAÇÃO COM GEMINI (BYOK) -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">04 • Integração de IA</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Google Gemini & Structured Outputs</h2>
+      <p class="slide-subheading">Geração com garantia de tipagem estrita e conformidade de JSON schema.</p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🤖 Chamada REST Direta</h3>
+          <ul>
+            <li><strong>Zero SDK Overhead:</strong> Chamadas REST puras diretamente ao endpoint oficial v1beta do Google AI Studio.</li>
+            <li><strong>Chave no Header:</strong> Autenticação via header <code>x-goog-api-key</code> diretamente com a chave informada pelo usuário (BYOK).</li>
+            <li><strong>Modelos de Alta Velocidade:</strong> Suporte nativo a <code>gemini-2.5-flash</code>, <code>gemini-2.5-flash-lite</code>, <code>gemini-2.5-pro</code> e <code>gemma</code>.</li>
+          </ul>
+        </div>
+        <div class="card highlight">
+          <h3>📋 Structured Outputs (JSON Schema)</h3>
+          <ul>
+            <li><strong>Garantia de Esquema:</strong> Resposta estruturada com <code>responseMimeType: "application/json"</code>.</li>
+            <li><strong>Atributos Extraídos:</strong> Título atraente, descrição contextualizada e categoria classificada.</li>
+            <li><strong>Sem Alucinações de Formato:</strong> Evita erros de parse no frontend, garantindo rendering estável e imediato.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Integração com LLMs</div>
+      <div>Página 5</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 6: EXPERIÊNCIA DO USUÁRIO -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">05 • Experiência do Usuário (UX)</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Interface Otimizada, Fluida e Acessível</h2>
+      <p class="slide-subheading">Design centrado no usuário com navegação por abas intuitiva e feedback em tempo real.</p>
+
+      <div class="grid-4">
+        <div class="card">
+          <h3>✨ Gerar Ideia</h3>
+          <p>Saudação personalizada pelo primeiro nome, tags de categorias de um clique e geração de ideias instantânea.</p>
+        </div>
+        <div class="card">
+          <h3>📂 Histórico</h3>
+          <p>Listagem completa das ideias do usuário logado com filtro por categorias, alternador de favoritas e busca em texto.</p>
+        </div>
+        <div class="card">
+          <h3>⚙️ Configurações</h3>
+          <p>Gerenciamento da chave Gemini, seleção de modelos e botão de teste de conectividade ao vivo.</p>
+        </div>
+        <div class="card">
+          <h3>🌙 Dark Mode</h3>
+          <p>Alternância suave entre tema claro e escuro persistida no navegador e no design system do Tailwind.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Design & Usabilidade</div>
+      <div>Página 6</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 7: QUALIDADE DE SOFTWARE & TESTES -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">06 • Qualidade & Engenharia</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Bateria de Testes, Métricas e Confiabilidade</h2>
+      <p class="slide-subheading">Desenvolvimento guiado por robustez de testes e compilação limpa.</p>
+
+      <div class="grid-3" style="margin-bottom: 1.5rem;">
+        <div class="card" style="text-align: center;">
+          <div class="stat-number">98</div>
+          <div class="stat-label">Testes Automatizados Passando (Vitest)</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div class="stat-number">0</div>
+          <div class="stat-label">Erros de Tipagem TypeScript (tsc --noEmit)</div>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div class="stat-number">~1.3s</div>
+          <div class="stat-label">Tempo de Build de Produção (Vite)</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>🧪 Suíte de Testes Unitários</h3>
+          <p>Cobertura completa de criptografia (Argon2id, HMAC, AES-GCM), cliente REST Gemini, rotas BFF e isolamento de banco de dados.</p>
+        </div>
+        <div class="card">
+          <h3>🚀 CI/CD & Vercel Deploy</h3>
+          <p>Configuração <code>vercel.json</code> padronizada para SPA Vite + Serverless Functions com regras de cache agressivas para PWA.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Lumi — Qualidade & Métricas</div>
+      <div>Página 7</div>
+    </div>
+  </section>
+
+  <!-- SLIDE 8: CONCLUSÃO -->
+  <section class="slide">
+    <div class="slide-header">
+      <div class="logo-badge">✦ LUMI</div>
+      <div class="slide-category">07 • Conclusão & Próximos Passos</div>
+    </div>
+    <div class="slide-content">
+      <h2 class="slide-heading">Conclusão do Projeto</h2>
+      <p class="slide-subheading">Resultados alcançados e perspectivas futuras para a plataforma Lumi.</p>
+
+      <div class="grid-2">
+        <div class="card highlight">
+          <h3>🎯 Objetivos Conquistados</h3>
+          <ul>
+            <li>Aplicação web moderna, responsiva e instalável (PWA).</li>
+            <li>Consumo escalável de LLMs sem custo de infraestrutura centralizada via BYOK.</li>
+            <li>Camada de segurança sólida com arquitetura Zero-Knowledge baseada em padrões OWASP.</li>
+            <li>Banco de dados distribuído na borda através do TursoDB Hrana v2.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>🔮 Trabalhos Futuros</h3>
+          <ul>
+            <li>Sincronização offline-first com Background Sync API.</li>
+            <li>Exportação de ideias em formatos Markdown, PDF e cartões visuais para redes sociais.</li>
+            <li>Multi-turn ideation (refinamento interativo da ideia selecionada).</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div>Obrigado! • Perguntas e Demonstração ao Vivo</div>
+      <div>Fim da Apresentação</div>
+    </div>
+  </section>
+
+</body>
+</html>
