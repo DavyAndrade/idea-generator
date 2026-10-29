@@ -69,6 +69,7 @@ CREATE TABLE usuarios (
 );
 CREATE TABLE ideias (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  usuario_id INTEGER NOT NULL REFERENCES usuarios(id),
   titulo TEXT NOT NULL,
   descricao TEXT NOT NULL,
   tema TEXT NOT NULL,
@@ -80,7 +81,7 @@ CREATE TABLE ideias (
 ```
 
 - `gemini_api_key` + `gemini_modelo` → tabela `configuracoes` (modo legado) **ou** `usuarios.gemini_key_cifrada` + `usuarios.gemini_modelo` (modo autenticado)
-- Ideias → tabela `ideias`
+- Ideias → tabela `ideias` com `usuario_id INTEGER NOT NULL REFERENCES usuarios(id)` — quando há sessão ativa, `salvarIdeia`, `listarIdeias`, `excluirIdeia` e `alternarFavorito` filtram isolam por `usuario_id`; modo legado (sem login) não filtra
 - Busca: `listarIdeias({ somenteFavoritas, busca })` com `LIKE` no SQL
 
 ## Gemini integration

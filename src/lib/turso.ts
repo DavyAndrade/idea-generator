@@ -178,6 +178,7 @@ export async function initTurso(): Promise<void> {
       sql: `
         CREATE TABLE IF NOT EXISTS ideias (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
+          usuario_id INTEGER,
           titulo TEXT NOT NULL,
           descricao TEXT NOT NULL,
           tema TEXT NOT NULL,

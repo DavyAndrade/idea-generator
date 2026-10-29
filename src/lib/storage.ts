@@ -252,9 +252,14 @@ export async function listarIdeias(opcoes?: {
 }): Promise<Ideia[]> {
   await ensureInit();
 
-  let sql = 'SELECT * FROM ideias';
-  const args: unknown[] = [];
+  const sessao = obterSessaoAtual();
   const conditions: string[] = [];
+  const args: unknown[] = [];
+
+  if (sessao) {
+    conditions.push('usuario_id = ?');
+    args.push(sessao.id);
+  }
 
   if (opcoes?.somenteFavoritas) {
     conditions.push('favorito = 1');
@@ -266,10 +271,10 @@ export async function listarIdeias(opcoes?: {
     args.push(termo, termo, termo);
   }
 
+  let sql = 'SELECT * FROM ideias';
   if (conditions.length > 0) {
     sql += ' WHERE ' + conditions.join(' AND ');
   }
-
   sql += ' ORDER BY criado_em DESC';
 
   const rows = await query<Record<string, unknown>>(sql, args);
@@ -279,13 +284,14 @@ export async function listarIdeias(opcoes?: {
 export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
   await ensureInit();
 
+  const sessao = obterSessaoAtual();
   const criadoEm = ideia.criadoEm ?? new Date().toISOString();
   const favorito = ideia.favorito ? 1 : 0;
 
   // RETURNING * — last_insert_rowid() em HTTP stateless pode falhar entre chamadas
   const rows = await query<Record<string, unknown>>(
-    `INSERT INTO ideias (titulo, descricao, tema, categoria, prompt_usado, favorito, criado_em)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO ideias (titulo, descricao, tema, categoria, prompt_usado, favorito, criado_em${sessao ? ', usuario_id' : ''})
+     VALUES (?, ?, ?, ?, ?, ?, ?${sessao ? ', ?' : ''})
      RETURNING *`,
     [
       ideia.titulo,
@@ -295,6 +301,7 @@ export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
       ideia.promptUsado ?? null,
       favorito,
       criadoEm,
+      ...(sessao ? [sessao.id] : []),
     ],
   );
 
@@ -307,13 +314,35 @@ export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
 
 export async function excluirIdeia(id: number): Promise<void> {
   await ensureInit();
-  await execute('DELETE FROM ideias WHERE id = ?', [id]);
+
+  const sessao = obterSessaoAtual();
+  if (sessao) {
+    await execute('DELETE FROM ideias WHERE id = ? AND usuario_id = ?', [id, sessao.id]);
+  } else {
+    await execute('DELETE FROM ideias WHERE id = ?', [id]);
+  }
 }
 
 export async function alternarFavorito(id: number, favoritoAtual?: boolean): Promise<Ideia | undefined> {
   await ensureInit();
 
+  const sessao = obterSessaoAtual();
   const novoValor = favoritoAtual ? 0 : 1;
+
+  if (sessao) {
+    await execute(
+      'UPDATE ideias SET favorito = ? WHERE id = ? AND usuario_id = ?',
+      [novoValor, id, sessao.id],
+    );
+
+    const rows = await query<Record<string, unknown>>(
+      'SELECT * FROM ideias WHERE id = ? AND usuario_id = ?',
+      [id, sessao.id],
+    );
+
+    if (rows.length === 0) return undefined;
+    return rowToIdeia(rows[0]);
+  }
 
   await execute(
     'UPDATE ideias SET favorito = ? WHERE id = ?',
