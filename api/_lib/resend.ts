@@ -15,6 +15,10 @@ interface ResendResponse {
 
 const RESEND_BASE = 'https://api.resend.com/emails';
 
+// Modo de testes locais: força a exibição do link no terminal/console
+// Altere para false quando validar e quiser disparar e-mails reais via Resend
+export const FORCAR_CONSOLE_LOCAL = true;
+
 function getApiKey(): string | null {
   return (
     process.env.RESEND_API_KEY ||
@@ -29,13 +33,27 @@ export async function enviarEmail(recipient: {
   subject: string;
   html: string;
 }): Promise<{ ok: boolean; id?: string; mensagem: string }> {
+  // Extrai o link de redefinição para exibição limpa no terminal
+  const linkMatch = recipient.html.match(/href="([^"]+)"/);
+  const link = linkMatch ? linkMatch[1] : '';
+
+  if (FORCAR_CONSOLE_LOCAL) {
+    console.log('\n======================================================');
+    console.log('📬 [LUMI - RECUPERAÇÃO DE SENHA (MODO TESTE LOCAL)]');
+    console.log(`👤 Para: ${recipient.email} <${recipient.nome}>`);
+    console.log(`📋 Assunto: ${recipient.subject}`);
+    if (link) {
+      console.log(`🔗 LINK DE RECUPERAÇÃO:\n   ${link}`);
+    }
+    console.log('======================================================\n');
+    return { ok: true, mensagem: 'Link de recuperação logado no console (modo teste local ativo).' };
+  }
+
   const apiKey = getApiKey();
 
   if (!apiKey) {
-    // Modo desenvolvimento: log do link para testes locais
     console.log(`[RESEND dev] Para: ${recipient.email} <${recipient.nome}>`);
-    console.log(`[RESEND dev] Assunto: ${recipient.subject}`);
-    console.log(`[RESEND dev] HTML: ${recipient.html}`);
+    console.log(`[RESEND dev] Link: ${link}`);
     return { ok: true, mensagem: 'Email logado no console (sem RESEND_API_KEY)' };
   }
 

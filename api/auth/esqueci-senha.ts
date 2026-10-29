@@ -48,9 +48,9 @@ export async function POST(req: Request): Promise<Response> {
       [userId, tokenHash, expiraEm, criadoEm]
     );
 
-    // URL de recuperacao (token + salt como params)
-    const baseUrl = process.env.RECOVERY_BASE_URL || 'http://localhost:5173';
-    const link = `${baseUrl}/recuperar-senha?token=${token}&saltHex=${saltHex}`;
+    // URL de recuperacao (token + salt como params na raiz do app)
+    const baseUrl = process.env.APP_URL || process.env.RECOVERY_BASE_URL || 'http://localhost:5173';
+    const link = `${baseUrl.replace(/\/$/, '')}/?token=${token}&saltHex=${saltHex}`;
 
     // Envia email
     await enviarEmail({
