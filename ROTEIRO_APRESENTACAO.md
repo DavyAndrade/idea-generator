@@ -93,13 +93,15 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 #### 🗣️ O que falar:
 > "Entrando no **Aplicativo em si**, o Lumi foi concebido como um Progressive Web App (PWA) de alta responsividade, com design mobile-first e interface fluida:
 >
-> - **Na Tela de Ideação**, o usuário é recebido com uma saudação personalizada e pode escolher entre categorias rápidas — como Aplicativos, Negócios, Criação de Conteúdo, Open Source e Hobbies — ou digitar um tema livre. A geração ocorre com feedback visual e animações de estado.
+> - **Onboarding e Autenticação Segura:** A tela de login e cadastro conta com validação de política de senha forte em tempo real (mínimo 8 caracteres, maiúscula, minúscula, número e símbolo), fornecendo feedback visual imediato ao usuário enquanto ele digita.
+> - **Na Tela de Ideação**, o usuário é recebido com uma saudação personalizada e pode escolher entre categorias rápidas — como Aplicativos, Negócios, Criação de Conteúdo, Open Source e Hobbies — ou digitar um tema livre. A interface conta com micro-estados ricos do shadcn/ui: skeletons animados durante a inferência, badges estilizados e toasts de confirmação.
 > - **Na Tela de Histórico**, o usuário tem acesso a todas as suas ideias salvas. Implementamos filtragem dinâmica por categoria, marcação de favoritos e uma barra de busca textual em tempo real. Como as ideias ficam cifradas no banco, a busca ocorre em memória de forma segura após a decifragem local.
 > - **Na Tela de Configurações**, o usuário gerencia sua chave do Google Gemini de forma transparente, seleciona o modelo de linguagem desejado e conta com um botão de teste de conectividade em tempo real com o Google AI Studio.
-> - **Experiência PWA:** O app conta com Service Worker ativo em estratégia cache-first para o shell e manifest instalado como aplicativo nativo tanto no smartphone quanto no desktop, além de alternância completa de tema Claro e Escuro."
+> - **Experiência PWA:** O app conta com Service Worker ativo em estratégia cache-first para o shell e manifest instalado como aplicativo nativo tanto no smartphone quanto no desktop, além de alternância suave entre tema Claro e Escuro.
+> - **Transição Arquitetural:** O ponto mais importante de usabilidade e segurança é que toda essa interface reativa **nunca** fala diretamente com o banco de dados. Tudo é mediado pela nossa arquitetura Serverless BFF, que veremos a seguir."
 
 #### 🎯 Destaque técnico:
-- Citar React 19, Tailwind CSS v4, componentes shadcn/ui e conformidade com padrões de acessibilidade e performance do Lighthouse.
+- Citar React 19, Tailwind CSS v4, componentes shadcn/ui (skeletons, badges, toasts, inputs controlados) e conformidade com padrões de acessibilidade e performance do Lighthouse.
 
 ---
 
@@ -132,12 +134,13 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 > - Trata-se de uma engine baseada em SQLite distribuído geograficamente na borda (Edge).
 > - O grande diferencial técnico aqui foi a implementação do protocolo **Hrana v2 via HTTP Pipeline v2** sobre HTTPS. Não usamos drivers binários nativos pesados de C/C++ nem dependências desnecessárias; a comunicação é feita através de chamadas HTTP ultraleves e eficientes.
 > - O banco adota um modelo relacional normalizado: tabela `usuarios` e tabela `ideias` vinculadas com integridade referencial via `FOREIGN KEY (usuario_id) REFERENCES usuarios(id)`.
+> - **Criptografia Seletiva E2E:** Para conciliar busca performática com privacidade absoluta, os campos `titulo` e `categoria` trafegam e residem em texto claro, permitindo indexação e filtragem rápida, enquanto `descricao`, `tema` e `promptUsado` são cifrados com AES-256-GCM antes de tocar a rede.
 > - O banco opera sob o princípio de confiança zero: armazena apenas hashes canônicos e ciphertexts criptografados.
 >
 > **2. Web Services RESTful (`/api/*`):**
 > - Desenvolvemos endpoints serverless seguindo a especificação padrão Web Fetch API (`Request` e `Response` nativos).
 > - As rotas `/api/auth/registrar`, `/api/auth/login` e `/api/auth/sessao` gerenciam o ciclo de vida do usuário sem trafegar senhas em texto puro.
-> - O endpoint `/api/ideias` responde aos verbos `GET`, `POST`, `PATCH` e `DELETE`, sempre validando o Bearer Token no cabeçalho `Authorization` e garantindo que o usuário só consiga visualizar e manipular suas próprias ideias."
+> - O endpoint `/api/ideias` responde aos verbos `GET` (listar), `POST` (criar ideia com payload E2E), `PATCH` (favoritar recebendo `{ id, favorito }`) e `DELETE` (recebendo `?id=<id>` via query param), sempre validando o Bearer Token no cabeçalho `Authorization` e garantindo que o usuário só consiga visualizar e manipular suas próprias ideias."
 
 #### 🎯 Destaque técnico:
 - Ausência de dependência pesada de ORMs, uso do protocolo nativo Hrana v2 e garantia de isolamento multitenant no SQL.
@@ -178,9 +181,9 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 #### 🗣️ O que falar:
 > "Para garantir que o usuário seja o único dono das suas criações, desenvolvemos uma arquitetura de segurança **Zero-Knowledge**:
 >
-> 1. No cadastro e login, usamos o **Argon2id** compilado em WebAssembly rodando diretamente no browser do usuário, alocando 19 MiB de memória e 3 iterações. Ele gera o hash no formato canônico PHC padrão OWASP.
-> 2. No servidor, combinamos a senha com um **Pepper criptográfico via HMAC-SHA256**, tornando inviáveis ataques de dicionário ou tabelas rainbow mesmo em caso de vazamento do banco.
-> 3. Uma chave simétrica `vaultKeyHex` de 256 bits é gerada e mantida estritamente na memória da sessão do navegador. Ela é usada para cifrar a chave do Gemini e os campos sigilosos das ideias com algoritmo **AES-256-GCM**, com vetor de inicialização (IV) aleatório de 96 bits para cada registro.
+> 1. No cadastro e login, o cliente executa o **Argon2id** compilado em WebAssembly rodando diretamente no browser do usuário, alocando 19 MiB de memória e 3 iterações. Ele gera o hash no formato canônico PHC padrão OWASP e o hash de autenticação com Pepper criptográfico (`HMAC-SHA256`). A senha plana nunca toca a rede nem os servidores.
+> 2. O servidor valida a credencial via verificação de hash canônico sem jamais conhecer a senha original, inviabilizando ataques de dicionário ou tabelas rainbow mesmo em caso de vazamento da base de dados.
+> 3. Uma chave simétrica `vaultKeyHex` de 256 bits é gerada e mantida estritamente na memória volátil da sessão do navegador. Ela é usada para cifrar a chave do Gemini e os campos sigilosos das ideias com algoritmo **AES-256-GCM**, com vetor de inicialização (IV) aleatório de 96 bits para cada registro.
 >
 > O servidor e o banco de dados só enxergam strings criptografadas aleatórias."
 
