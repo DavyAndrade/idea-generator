@@ -25,7 +25,7 @@ jobs:
         run: bun --cwd apps/web x tsc --noEmit
 
       - name: Rodar testes
-        run: bun --cwd apps/web test -- --run
+        run: bun --cwd apps/web test
 
       - name: Build da PWA
         run: bun --cwd apps/web run build
