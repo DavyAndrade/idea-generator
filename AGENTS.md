@@ -83,7 +83,8 @@ CREATE TABLE ideias (
 
 - `gemini_api_key` + `gemini_modelo` → tabela `configuracoes` (modo legado) **ou** `usuarios.gemini_key_cifrada` + `usuarios.gemini_modelo` (modo autenticado)
 - Ideias → tabela `ideias` com `usuario_id INTEGER NOT NULL REFERENCES usuarios(id)` — quando há sessão ativa, `salvarIdeia`, `listarIdeias`, `excluirIdeia` e `alternarFavorito` filtram isolam por `usuario_id`; modo legado (sem login) não filtra
-- Busca: `listarIdeias({ somenteFavoritas, busca })` com `LIKE` no SQL
+- Categorias: `CATEGORIAS` em `types.ts` define `'App'`, `'Negócio'`, `'Conteúdo'`, `'Open Source'`, `'Hobby'`
+- Histórico: `listarIdeias({ somenteFavoritas, busca, categoria })` — filtra por categoria e/ou busca textual (`LIKE` no SQL); `tela-historico.tsx` oferece organização e filtro por categorias + Somente Favoritas
 
 ## Gemini integration
 

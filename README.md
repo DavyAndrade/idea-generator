@@ -18,7 +18,7 @@ Google AI Studio, protegida com criptografia ponta a ponta (`AES-256-GCM`).
 ```
 src/
   lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), crypto.ts (Web Crypto), storage.ts (auth + CRUD), utils.ts
-  components/     # TelaAuth, TelaGerar, TelaHistorico, TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
+  components/     # TelaAuth, TelaGerar, TelaHistorico (busca + filtro categoria + favoritas), TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
   components/ui/  # shadcn/ui (Badge, Button, Card, Input)
   types.ts        # Ideia, UsuarioSessao, Categoria, ModeloGemini, constantes
   App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
@@ -53,7 +53,14 @@ O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente
    - Modo legado (sem login): chave em texto plano na tabela `configuracoes`
    - O servidor nunca vê a senha nem a chave Gemini em texto plano
 
-### Web Crypto API
+### Histórico de Ideias
+
+A tela de Histórico (`tela-historico.tsx`) permite organizar e filtrar as ideias salvas:
+
+- **Filtrar por categoria**: clique em uma categoria (`App`, `Negócio`, `Conteúdo`, `Open Source`, `Hobby`) para visualizar apenas as ideias desta categoria.
+- **Somente favoritas**: ative o badge "Somente favoritas" para exibir apenas as ideias marcadas como favorito.
+- **Buscar**: digite um termo para buscar em título, descrição e tema das ideias (usando `LIKE` no SQL).
+- Quando logado, o histórico mostra apenas as ideias do usuário ativo (`usuario_id`).
 
 - `gerarSaltHex()` — salt aleatório de 16 bytes
 - `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações) + **Pepper via HMAC-SHA256** → `authHashHex` + `vaultKeyHex` (256 bits cada, formato opaco hex sem prefixos PHC `$argon2`)
