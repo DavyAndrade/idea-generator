@@ -11,7 +11,7 @@ Google AI Studio, protegida com criptografia ponta a ponta (`AES-256-GCM`).
 - **PWA** — Service Worker (cache-first para shell, network-first para navegação) + `manifest.webmanifest`
 - **Bun** — runtime e gerenciador de pacotes
 - **TursoDB** (HTTP Pipeline v2 / Hrana v2) — persistência de chave API, modelo e ideias
-- **Gemini REST** direto (`gemini-2.5-flash`), sem SDK oficial
+- **Gemini REST** direto (`gemini-2.5-flash` padrão), sem SDK oficial — modelos suportados: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash`, `gemma-4-26b-it`, `gemma-4-31b-it`
 
 ## Arquitetura
 
