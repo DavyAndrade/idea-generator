@@ -1,42 +1,44 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 export default async function handler(req: any, res: any) {
   const results: Record<string, unknown> = {
     ok: true,
-    node: process.version,
-    hasTursoUrl: Boolean(process.env.TURSO_DATABASE_URL),
-    hasTursoToken: Boolean(process.env.TURSO_AUTH_TOKEN),
-    hasAuthPepper: Boolean(process.env.AUTH_PEPPER),
-    hasJwtSecret: Boolean(process.env.JWT_SECRET),
-    envKeysCount: Object.keys(process.env).length,
+    cwd: process.cwd(),
   };
 
-  // Teste 1: Importar Turso e testar conexão
+  // Lista os arquivos em /var/task e /var/task/api
   try {
-    const { query } = await import('./_lib/turso');
-    results.tursoImport = 'OK';
-    try {
-      const rows = await query('SELECT 1 as num');
-      results.tursoQuery = rows;
-    } catch (e: any) {
-      results.tursoQueryError = e.message;
+    results.taskFiles = fs.readdirSync(process.cwd());
+  } catch (e: any) {
+    results.taskFilesError = e.message;
+  }
+
+  try {
+    results.apiFiles = fs.readdirSync(path.join(process.cwd(), 'api'));
+  } catch (e: any) {
+    results.apiFilesError = e.message;
+  }
+
+  // Verifica se a pasta _lib existe e lista seu conteúdo
+  try {
+    const libPath = path.join(process.cwd(), 'api', '_lib');
+    results.libExists = fs.existsSync(libPath);
+    if (results.libExists) {
+      results.libFiles = fs.readdirSync(libPath);
     }
   } catch (e: any) {
-    results.tursoImportError = e.message;
+    results.libError = e.message;
   }
 
-  // Teste 2: Importar hash-wasm
+  // Teste de import com extensão .js
   try {
-    const { argon2id } = await import('hash-wasm');
-    results.hashWasmImport = 'OK';
+    const turso = await import('./_lib/turso.js');
+    results.importTursoJs = 'OK';
+    const rows = await turso.query('SELECT 1 as num');
+    results.tursoQuery = rows;
   } catch (e: any) {
-    results.hashWasmImportError = e.message;
-  }
-
-  // Teste 3: Importar crypto helper
-  try {
-    const { getPepper } = await import('./_lib/crypto');
-    results.cryptoImport = 'OK';
-  } catch (e: any) {
-    results.cryptoImportError = e.message;
+    results.importTursoJsError = e.message;
   }
 
   res.status(200).json(results);
