@@ -5,6 +5,7 @@ import {
   cifrarTexto,
   decifrarTexto,
   constantTimeEquals,
+  verificarArgon2id,
 } from '@/lib/crypto';
 
 describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
@@ -24,15 +25,11 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
   });
 
   describe('derivarChaves', () => {
-    it('produz authHashHex de 64 hex chars sem prefixos PHC ($argon2)', async () => {
+    it('produz authHashHex no formato PHC canonico $argon2id$v=19$m=19456,t=3,p=1$', async () => {
       const salt = await gerarSaltHex();
       const { authHashHex, vaultKeyHex } = await derivarChaves(SENHA, salt);
-      expect(authHashHex).toMatch(/^[0-9a-f]{64}$/);
+      expect(authHashHex).toMatch(/^\$argon2id\$v=19\$m=19456,t=3,p=1\$/);
       expect(vaultKeyHex).toMatch(/^[0-9a-f]{64}$/);
-      expect(authHashHex).not.toContain(':');
-      expect(authHashHex).not.toContain('$argon2');
-      expect(authHashHex).not.toContain('$argon');
-      expect(authHashHex).not.toContain('argon2');
     });
 
     it('authHashHex !== vaultKeyHex', async () => {
@@ -66,11 +63,49 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
       expect(a.vaultKeyHex).not.toBe(b.vaultKeyHex);
     });
 
-    it('pepper undefined = pepper vazio (sem peppaer ainda funciona)', async () => {
+    it('pepper undefined = pepper padrão (ainda funciona)', async () => {
       const salt = await gerarSaltHex();
       const { authHashHex, vaultKeyHex } = await derivarChaves(SENHA, salt);
-      expect(authHashHex).toMatch(/^[0-9a-f]{64}$/);
+      expect(authHashHex).toMatch(/^\$argon2id\$/);
       expect(vaultKeyHex).toMatch(/^[0-9a-f]{64}$/);
+    });
+  });
+
+  describe('verificarArgon2id', () => {
+    // Replica a lógica interna de aplicarPepper (HMAC-SHA256) para obter senhaPeppered
+    async function pepperSenha(senha: string, pepper: string): Promise<Uint8Array> {
+      const key = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(pepper),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+      );
+      const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(senha));
+      return new Uint8Array(sig);
+    }
+
+    const PEPPER_TESTE = 'pepper-test';
+
+    it('retorna true para a senha peppered correta', async () => {
+      const salt = await gerarSaltHex();
+      const { authHashHex } = await derivarChaves(SENHA, salt, PEPPER_TESTE);
+      const senhaPeppered = await pepperSenha(SENHA, PEPPER_TESTE);
+      expect(await verificarArgon2id(senhaPeppered, authHashHex)).toBe(true);
+    });
+
+    it('retorna false para senha errada', async () => {
+      const salt = await gerarSaltHex();
+      const { authHashHex } = await derivarChaves(SENHA, salt, PEPPER_TESTE);
+      const senhaPepperedErrada = await pepperSenha('senha-errada', PEPPER_TESTE);
+      expect(await verificarArgon2id(senhaPepperedErrada, authHashHex)).toBe(false);
+    });
+
+    it('retorna false para pepper diferente', async () => {
+      const salt = await gerarSaltHex();
+      const { authHashHex } = await derivarChaves(SENHA, salt, 'pepper-A');
+      const senhaPeppered = await pepperSenha(SENHA, 'pepper-B');
+      expect(await verificarArgon2id(senhaPeppered, authHashHex)).toBe(false);
     });
   });
 

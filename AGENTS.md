@@ -45,7 +45,7 @@ Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts`, `lib/
 
 Zero-knowledge authentication via Web Crypto API (nunca expõe algoritmo no hash).
 
-- `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256**, derivando 512 bits divididos em `authHashHex` (256 bits, formato opaco hex de 64 chars sem prefixo PHC `$argon2`) + `vaultKeyHex` (256 bits para AES-256-GCM), `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
+- `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256**, produzindo `authHashHex` no formato **PHC canônico** `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP, desestimula atacantes offline) + `vaultKeyHex` (64 hex chars / 256 bits para AES-256-GCM), `verificarArgon2id(senhaPeppered, phcHash)` para verificação de login, `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
 - `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
 - `components/tela-auth.tsx`: exige senha forte no cadastro (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial) com checklist em tempo real.
 
@@ -63,7 +63,7 @@ CREATE TABLE usuarios (
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
   salt TEXT NOT NULL,
-  credencial_hash TEXT NOT NULL,  -- authHashHex (Argon2id + Pepper HMAC-SHA256, 256 bits, formato opaco sem prefixo PHC)
+  credencial_hash TEXT NOT NULL,  -- authHashHex PHC canônico: $argon2id$v=19$m=19456,t=3,p=1$... (Argon2id + Pepper HMAC-SHA256, 256 bits, OWASP)
   gemini_key_cifrada TEXT,        -- AES-256-GCM cifrada com vaultKeyHex
   gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
   criado_em TEXT NOT NULL

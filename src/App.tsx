@@ -60,8 +60,8 @@ export function App() {
 
   if (!sessao) {
     return (
-      <div className="min-h-dvh bg-muted/30">
-        <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col border-x bg-background shadow-sm">
+      <div className="min-h-dvh bg-background">
+        <div className="flex min-h-dvh w-full flex-col">
           <AppBar dark={dark} onToggleDark={() => setDark(!dark)} />
           <TelaAuth
             onAutenticado={(s) => {
@@ -75,8 +75,8 @@ export function App() {
   }
 
   return (
-    <div className="min-h-dvh bg-muted/30">
-      <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col border-x bg-background shadow-sm">
+    <div className="min-h-dvh bg-background">
+      <div className="flex min-h-dvh w-full flex-col">
         <AppBar
           dark={dark}
           onToggleDark={() => setDark(!dark)}

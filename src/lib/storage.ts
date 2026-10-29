@@ -6,6 +6,9 @@ import { execute, query, initTurso, rowToIdeia, testarConexaoTurso as _testarCon
 import {
   gerarSaltHex,
   derivarChaves,
+  derivarHashLegado,
+  aplicarPepper,
+  verificarArgon2id,
   cifrarTexto,
   decifrarTexto,
   constantTimeEquals,
@@ -138,9 +141,22 @@ export async function loginUsuario(params: {
   }
 
   const row = rows[0];
-  const { authHashHex, vaultKeyHex } = await derivarChaves(params.senha, String(row.salt));
+  const senhaPeppered = await aplicarPepper(params.senha);
 
-  if (!constantTimeEquals(authHashHex, String(row.credencial_hash))) {
+  let autenticado: boolean;
+  let vaultKeyHex: string;
+  const credHash = String(row.credencial_hash);
+  if (credHash.startsWith('$argon2')) {
+    autenticado = await verificarArgon2id(senhaPeppered, credHash);
+    ({ vaultKeyHex } = await derivarChaves(params.senha, String(row.salt)));
+  } else {
+    // Fallback legado: hash opaco sem prefixo (64 hex chars)
+    const authHashHex = await derivarHashLegado(params.senha, String(row.salt));
+    ({ vaultKeyHex } = await derivarChaves(params.senha, String(row.salt)));
+    autenticado = constantTimeEquals(authHashHex, credHash);
+  }
+
+  if (!autenticado) {
     throw new Error('E-mail ou senha inválidos');
   }
 

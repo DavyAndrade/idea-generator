@@ -37,7 +37,7 @@ O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente
    - **Política de senha forte** validada em tempo real no cadastro: mínimo de **8 caracteres**, **1 letra maiúscula**, **1 letra minúscula**, **1 número** e **1 caractere especial**.
    - Gera `salt` aleatório (16 bytes hex) via `crypto.getRandomValues`
    - Deriva `authHashHex` e `vaultKeyHex` via **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256** (512 bits)
-   - `authHashHex` (64 hex chars, 256 bits, sem prefixos) → armazenado como `credencial_hash` no banco
+   - `authHashHex` no formato PHC canônico `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP: 19 MiB RAM, 3 iterações, paralelismo 1) → armazenado como `credencial_hash` no banco
    - `vaultKeyHex` (64 hex chars, 256 bits) → mantida apenas em memória/sessionStorage (nunca persistida)
    - A chave Gemini do usuário é **criptografada com AES-256-GCM** usando `vaultKeyHex` antes de ser salva como `gemini_key_cifrada`
    - **Isolamento de ideias por conta (`usuario_id`)**: todas as ideias salvas, listadas, favoritadas ou excluídas ficam vinculadas exclusivamente ao `usuario_id` da conta logada.
@@ -63,7 +63,8 @@ A tela de Histórico (`tela-historico.tsx`) permite organizar e filtrar as ideia
 - Quando logado, o histórico mostra apenas as ideias do usuário ativo (`usuario_id`).
 
 - `gerarSaltHex()` — salt aleatório de 16 bytes
-- `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações) + **Pepper via HMAC-SHA256** → `authHashHex` + `vaultKeyHex` (256 bits cada, formato opaco hex sem prefixos PHC `$argon2`)
+- `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) + **Pepper via HMAC-SHA256** → `authHashHex` no formato **PHC canônico** `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP) + `vaultKeyHex` (64 hex chars / 256 bits para AES-256-GCM)
+- `verificarArgon2id(senhaPeppered, phcHash)` — verifica senha contra hash PHC Argon2id (usado no login)
 - `cifrarTexto(texto, chaveHex)` — AES-256-GCM com IV aleatório por operação (ciphertext único a cada chamada)
 - `decifrarTexto(ciphertextHex, chaveHex)` — AES-256-GCM decrypt
 - `constantTimeEquals(a, b)` — comparação em tempo constante

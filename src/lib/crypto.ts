@@ -1,10 +1,10 @@
 // Zero-Knowledge Auth + AES-256-GCM vault
 // - gerarSaltHex: salt aleatório hex para Argon2id
-// - derivarChaves: Argon2id (via hash-wasm) + Pepper (HMAC-SHA256) → authHashHex (64 chars) + vaultKeyHex (64 chars)
+// - derivarChaves: Argon2id (via hash-wasm) + Pepper (HMAC-SHA256) → PHC string + vaultKeyHex (64 chars)
 // - cifrarTexto/decifrarTexto: AES-256-GCM com IV aleatório por operação
 // - constantTimeEquals: comparação que não vaza timing
-// Web Crypto API + hash-wasm — nunca expõe o algoritmo no hash (formato opaco)
-import { argon2id } from "hash-wasm";
+// Web Crypto API + hash-wasm — usa PHC oficial para authHash, vaultKeyHex opaco
+import { argon2id, argon2Verify } from "hash-wasm";
 
 const SALT_BYTES = 16;
 const KEY_BYTES = 32; // 256 bits
@@ -38,7 +38,7 @@ interface ChavesDerivadas {
 
 /// Aplica Pepper via HMAC-SHA256 sobre a senha antes do derive.
 /// Le o pepper do parâmetro, VITE_AUTH_PEPPER ou fallback padrão.
-async function aplicarPepper(senha: string, pepper?: string): Promise<Uint8Array> {
+export async function aplicarPepper(senha: string, pepper?: string): Promise<Uint8Array> {
   let pepperKey: string | undefined = pepper;
   if (!pepperKey && typeof import.meta !== "undefined") {
     pepperKey = (import.meta.env as Record<string, string | undefined> | undefined)?.VITE_AUTH_PEPPER;
@@ -57,17 +57,19 @@ async function aplicarPepper(senha: string, pepper?: string): Promise<Uint8Array
   return new Uint8Array(assinatura);
 }
 
-/// Deriva duas chaves distintas via Argon2id (com Pepper HMAC-SHA256):
-/// - authHashHex: hash opaco de 64 hex chars (256 bits) para autenticação
-/// - vaultKeyHex: chave de 64 hex chars (256 bits) para criptografia AES
-export async function derivarChaves(
+/// Verifica senha peppered contra um hash PHC Argon2id.
+export async function verificarArgon2id(senhaPeppered: Uint8Array, phcHash: string): Promise<boolean> {
+  return argon2Verify({ password: senhaPeppered, hash: phcHash });
+}
+
+/// Deriva hash opaco legado (64 hex chars, sem prefixo PHC) para compat com hashes antigos.
+export async function derivarHashLegado(
   senha: string,
   saltHex: string,
   pepper?: string,
-): Promise<ChavesDerivadas> {
+): Promise<string> {
   const senhaPeppered = await aplicarPepper(senha, pepper);
   const salt = hexToBuf(saltHex);
-
   const hex = await argon2id({
     password: senhaPeppered,
     salt,
@@ -77,10 +79,45 @@ export async function derivarChaves(
     hashLength: 64,
     outputType: "hex",
   });
+  return hex.slice(0, 64);
+}
+
+/// Deriva duas chaves distintas via Argon2id (com Pepper HMAC-SHA256):
+/// - authHashHex: string PHC oficial $argon2id$v=19$m=19456,t=3,p=1$... para autenticação
+/// - vaultKeyHex: chave de 64 hex chars (256 bits) para criptografia AES
+export async function derivarChaves(
+  senha: string,
+  saltHex: string,
+  pepper?: string,
+): Promise<ChavesDerivadas> {
+  const senhaPeppered = await aplicarPepper(senha, pepper);
+  const salt = hexToBuf(saltHex);
+
+  // PHC oficial para verificação no login
+  const phc = await argon2id({
+    password: senhaPeppered,
+    salt,
+    parallelism: 1,
+    iterations: 3,
+    memorySize: 19456,
+    hashLength: 32,
+    outputType: "encoded",
+  });
+
+  // 64 hex chars opacos para chave AES-256-GCM
+  const vaultKeyHex = await argon2id({
+    password: senhaPeppered,
+    salt,
+    parallelism: 1,
+    iterations: 3,
+    memorySize: 19456,
+    hashLength: 32,
+    outputType: "hex",
+  });
 
   return {
-    authHashHex: hex.slice(0, 64),
-    vaultKeyHex: hex.slice(64, 128),
+    authHashHex: phc,
+    vaultKeyHex,
   };
 }
 
