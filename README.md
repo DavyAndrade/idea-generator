@@ -16,15 +16,14 @@ Google AI Studio, protegida com criptografia ponta a ponta (`AES-256-GCM`).
 ## Arquitetura
 
 ```
-apps/web/
-  src/
-    lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), crypto.ts (Web Crypto), storage.ts (auth + CRUD), utils.ts
-    components/     # TelaGerar, TelaHistorico, TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
-    components/ui/  # shadcn/ui (Badge, Button, Card, Input)
-    types.ts        # Ideia, UsuarioSessao, Categoria, ModeloGemini, constantes
-    App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
-    main.tsx        # Entry point React 19
-  public/           # manifest.webmanifest, sw.js, icon.svg
+src/
+  lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), crypto.ts (Web Crypto), storage.ts (auth + CRUD), utils.ts
+  components/     # TelaAuth, TelaGerar, TelaHistorico, TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
+  components/ui/  # shadcn/ui (Badge, Button, Card, Input)
+  types.ts        # Ideia, UsuarioSessao, Categoria, ModeloGemini, constantes
+  App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
+  main.tsx        # Entry point React 19
+public/           # manifest.webmanifest, sw.js, icon.svg
 ```
 
 **Fluxo:** tela → `lib/storage.ts` (auth + CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
@@ -62,24 +61,24 @@ O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente
 
 ## Variáveis de ambiente
 
-Crie `.env.local` em `apps/web/`:
+Crie `.env.local` (ou `.env`) na raiz do projeto:
 
 ```env
 VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
 VITE_TURSO_AUTH_TOKEN=SEU_TOKEN_DE_LEITURA/GRAVACAO
 ```
 
-- `VITE_TURSO_DATABASE_URL` — URL do banco Turso (formato `libsql://...`)
+- `VITE_TURSO_DATABASE_URL` — URL do banco Turso (formato `libsql://...` ou `turso://...`)
 - `VITE_TURSO_AUTH_TOKEN` — token de acesso (Pipeline v2 = escopo `read`, `write`)
 
 ## Comandos
 
 ```bash
-bun install              # instalar deps (na raiz ou apps/web)
+bun install              # instalar deps
 bun run dev              # iniciar servidor de desenvolvimento (localhost:5173)
-bun run build            # build de produção → apps/web/dist
+bun run build            # build de produção → dist/
 bun run preview          # preview do build local
-bun test                 # rodar testes (Vitest)
+bun test                 # rodar testes
 bun run typecheck        # verificar tipos TypeScript
 ```
 
@@ -90,14 +89,14 @@ GitHub Actions em `.github/workflows/ci.yml` (`main` branch):
 1. Checkout
 2. Install Bun + deps
 3. `tsc --noEmit` (type-safe)
-4. `vitest` (testes)
+4. `bun test` (testes)
 5. `vite build` (build PWA)
-6. Upload de `apps/web/dist` como artifact
+6. Upload de `dist` como artifact
 
 ## Build
 
 ```bash
-bun run build            # gera apps/web/dist/
+bun run build            # gera dist/
 ```
 
 A PWA é servida como arquivos estáticos (Vercel, Netlify, Cloudflare Pages, etc).

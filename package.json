@@ -1,16 +1,29 @@
 {
-  "name": "gerador-de-ideias",
-  "version": "1.0.0",
+  "name": "lumi",
+  "version": "0.1.0",
   "private": true,
-  "description": "Gerador de ideias criativas via Gemini (BYOK) — PWA React 19 + TursoDB",
+  "type": "module",
   "scripts": {
-    "dev": "bun --cwd apps/web run dev",
-    "build": "bun --cwd apps/web run build",
-    "preview": "bun --cwd apps/web run preview",
-    "test": "bun --cwd apps/web test",
-    "typecheck": "bun --cwd apps/web x tsc --noEmit"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
   },
-  "engines": {
-    "bun": ">=1.0.0"
+  "dependencies": {
+    "lucide-react": "^0.462.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vite": "^5.0.0",
+    "vitest": "^3.0.0"
   }
 }
