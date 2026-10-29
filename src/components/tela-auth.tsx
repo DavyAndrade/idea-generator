@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Check, X } from "lucide-react";
 
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -12,6 +12,19 @@ type Modo = "entrar" | "criar";
 interface TelaAuthProps {
   onAutenticado: (sessao: UsuarioSessao) => void;
 }
+
+interface ReqSenha {
+  label: string;
+  ok: (s: string) => boolean;
+}
+
+const REQUISITOS_SENHA: ReqSenha[] = [
+  { label: "Pelo menos 8 caracteres", ok: (s) => s.length >= 8 },
+  { label: "Pelo menos 1 letra maiúscula", ok: (s) => /[A-Z]/.test(s) },
+  { label: "Pelo menos 1 letra minúscula", ok: (s) => /[a-z]/.test(s) },
+  { label: "Pelo menos 1 número", ok: (s) => /[0-9]/.test(s) },
+  { label: "Pelo menos 1 caractere especial", ok: (s) => /[^A-Za-z0-9]/.test(s) },
+];
 
 export function TelaAuth({ onAutenticado }: TelaAuthProps) {
   const [modo, setModo] = useState<Modo>("entrar");
@@ -32,12 +45,25 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
     limparErro();
   };
 
+  const senhasValidas = REQUISITOS_SENHA.map((r) => r.ok(senha));
+  const todasSenhasOk = senhasValidas.every(Boolean);
+
   const validar = (): string | null => {
     if (!email.trim()) return "Digite seu e-mail.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
       return "E-mail inválido.";
-    if (senha.length < 6) return "A senha precisa de ao menos 6 caracteres.";
-    if (modo === "criar" && !nome.trim()) return "Digite seu nome.";
+
+    if (modo === "entrar") {
+      if (!senha) return "Digite sua senha.";
+      return null;
+    }
+
+    // modo === "criar"
+    if (!nome.trim()) return "Digite seu nome.";
+    if (!senha) return "Digite uma senha.";
+    if (!todasSenhasOk) {
+      return "A senha não atende a todos os requisitos de segurança.";
+    }
     return null;
   };
 
@@ -133,6 +159,35 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
                   {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+
+              {modo === "criar" && senha && (
+                <ul className="mt-2 space-y-1 text-xs">
+                  {REQUISITOS_SENHA.map((r, i) => {
+                    const ok = senhasValidas[i];
+                    return (
+                      <li
+                        key={r.label}
+                        className="flex items-center gap-1 text-muted-foreground"
+                      >
+                        {ok ? (
+                          <Check size={12} className="text-green-500" />
+                        ) : (
+                          <X size={12} className="text-red-500" />
+                        )}
+                        <span
+                          className={
+                            ok
+                            ? "text-green-600"
+                            : "text-red-600"
+                          }
+                        >
+                          {r.label}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
 
             {erro && (
@@ -142,7 +197,7 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
             <Button
               type="submit"
               className="w-full"
-              disabled={carregando}
+              disabled={carregando || (modo === "criar" && !todasSenhasOk)}
             >
               {carregando
                 ? modo === "entrar"
