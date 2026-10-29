@@ -1,279 +1,233 @@
 # Roteiro de Apresentação — Projeto Lumi
 
-Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **Lumi** (PWA de Geração Criativa com Inteligência Artificial, Arquitetura Serverless BFF e Criptografia Zero-Knowledge).
+Guia prático, amigável e direto ao ponto para a apresentação do projeto **Lumi** (Atividade AP5 - 5PDM).  
+Linguagem pensada para falar com naturalidade, segurança e clareza para a banca e colegas.
 
-- **Autor:** Davy Andrade  
-- **Duração total sugerida:** 10 a 12 minutos (+ tempo para demonstração ao vivo e perguntas da banca)  
-- **Formato dos Slides:** 16:9 Widescreen ([`apresentacao-lumi.pdf`](./apresentacao-lumi.pdf))  
+- **Apresentador:** Davy Andrade  
+- **Duração recomendada:** 10 a 12 minutos (+ tempo para a demonstração prática)  
+- **Slides de apoio:** 16:9 Widescreen ([`apresentacao-lumi.pdf`](./apresentacao-lumi.pdf))  
+- **Aplicação no ar:** [lumi-gen.vercel.app](https://lumi-gen.vercel.app/)
 
 ---
 
-## ⏱️ Grade de Tempo & Mapeamento dos Assuntos
+## ⏱️ Mapa Rápido dos Slides (11 Slides)
 
-| Slide | Tópico Oficial Solicitado | Nome do Slide | Tempo Sugerido |
+| # | Assunto Oficial | O que você vai falar em 1 frase | Tempo |
 |:---:|---|---|:---:|
-| **1** | Abertura | Capa do Projeto | 45s |
-| **2** | **Acesso ao Vivo** | PWA em Produção: QR Code & Link Online | 45s |
-| **3** | **Problema** | O Problema: Bloqueio Criativo e Riscos na Nuvem | 1m 15s |
-| **4** | **Solução** | A Solução: Lumi — Inteligente, Privado e Portátil | 1m 15s |
-| **5** | **Aplicativo** | O Aplicativo: PWA Moderno e Focado na Experiência (UX) | 1m 30s |
-| **6** | **Arquitetura** | Arquitetura de Software: Padrão Serverless BFF | 1m 30s |
-| **7** | **BD e /ou Web Service** | Persistência na Borda e Web Services RESTful | 1m 30s |
-| **8** | **IA (desenvolver)** | Engenharia de IA: Prompts, Schemas e Integração REST | 1m 30s |
-| **9** | Segurança & Privacidade | Segurança Criptográfica Zero-Knowledge (Argon2id + AES-GCM) | 1 min |
-| **10** | Qualidade & Engenharia | Bateria de Testes, Métricas e Confiabilidade | 1 min |
-| **11** | Conclusão & Demonstração | Conclusão do Projeto & Demonstração Prática | 1m 30s |
+| **1** | **Abertura** | Quem sou eu e o que é o Lumi: gerador de ideias com IA e privacidade. | 45s |
+| **2** | **Acesso ao Vivo** | Convite para a banca ler o QR Code e abrir o app no celular agora. | 45s |
+| **3** | **Problema** | Bloqueio criativo, medo de ter ideias roubadas e IA cara. | 1m 15s |
+| **4** | **Solução** | Ideias estruturadas, IA gratuita (BYOK) e cofre criptografado. | 1m 15s |
+| **5** | **Aplicativo** | As telas do PWA, temas, filtros e a nova proteção contra perda de ideias. | 1m 30s |
+| **6** | **Arquitetura** | O modelo BFF em 3 camadas: navegador, funções serverless e nuvem. | 1m 30s |
+| **7** | **BD e Web Services** | Banco TursoDB na borda e endpoints REST protegidos por token. | 1m 30s |
+| **8** | **IA (desenvolver)** | Como domamos o Gemini com prompts e JSON Schema sem bibliotecas pesadas. | 1m 30s |
+| **9** | **Segurança** | Criptografia Zero-Knowledge explicada de forma simples e visual. | 1 min |
+| **10** | **Qualidade & Testes** | 103 testes automatizados, TypeScript 100% estrito e build em 1 segundo. | 1 min |
+| **11** | **Conclusão & Demo** | Resumo dos ganhos e início da demonstração ao vivo no navegador. | 2 a 3 min |
 
 ---
 
-## 🎙️ Guia Slide a Slide
+## 🎙️ Guia Slide a Slide: Como Falar com Naturalidade
 
 ---
 
 ### Slide 1: Capa do Projeto
-- **Tempo estimado:** 45s  
-- **Elemento visual:** Título do Lumi com tags de tecnologias (React 19, TypeScript, TursoDB, Gemini, Argon2id, AES-256-GCM).
+- **Visual:** Título do Lumi, tecnologias usadas e identificação (Davy Andrade • Atividade AP5 - 5PDM).
 
-#### 🗣️ O que falar:
-> "Boa noite a todos os professores e colegas. Hoje apresento o projeto **Lumi**, uma plataforma moderna de ideação criativa que une o poder da Inteligência Artificial Generativa com garantias reais de privacidade e soberania do usuário.
+#### 🗣️ Como falar (simples e acolhedor):
+> "Boa noite, professores e colegas!
 >
-> O Lumi foi desenvolvido como um PWA de alta performance utilizando React 19, TypeScript, banco de dados distribuído na borda com TursoDB e um modelo de IA Bring Your Own Key diretamente com o Google Gemini.
+> Hoje vou apresentar para vocês o **Lumi**, uma aplicação que desenvolvi para resolver um problema muito comum: o bloqueio criativo na hora de criar novos projetos.
 >
-> Ao longo desta apresentação, vou detalhar o problema que nos motivou, a solução desenvolvida, as funcionalidades do aplicativo, a arquitetura de software, o banco de dados e web services criados, o desenvolvimento da camada de IA e, por fim, como garantimos segurança ponta a ponta sem onerar os custos de infraestrutura."
-
-#### 🎯 Destaque técnico:
-- Enfatizar que se trata de uma aplicação **Full-Stack de nível de produção**, pronta para uso real na web.
+> O Lumi combina o poder dos modelos de inteligência artificial mais modernos da Google com um compromisso sério: **privacidade total do usuário**. Tudo isso construído como uma aplicação web progressiva (PWA), rápida, responsiva e pronta para uso em produção.
+>
+> Vamos passar juntos pelo problema, pela solução, pela arquitetura técnica, pelo desenvolvimento da IA e fechar com uma demonstração prática ao vivo."
 
 ---
 
-### Slide 2: Acesso ao Vivo • PWA em Produção
-- **Tempo estimado:** 45s  
-- **Elemento visual:** QR Code de alta resolução em destaque, badge `● APLICAÇÃO DISPONÍVEL ONLINE`, link monoespaçado `https://lumi-gen.vercel.app/` e cartões informativos sobre PWA.
+### Slide 2: Acesso ao Vivo (PWA na Vercel)
+- **Visual:** QR Code grande e nítido, link `https://lumi-gen.vercel.app/` e aviso de PWA online.
 
-#### 🗣️ O que falar:
-> "Antes de mergulharmos nos detalhes da arquitetura e da engenharia do sistema, convido a banca e os presentes a apontarem a câmera do celular para o **QR Code na tela**.
+#### 🗣️ Como falar (interativo e confiante):
+> "Antes de entrarmos no código e na arquitetura, eu quero fazer um convite para vocês:
 >
-> A aplicação está 100% publicada e operacional na nuvem da Vercel no endereço `lumi-gen.vercel.app`. Como foi construída como uma Progressive Web App (PWA), ela abre instantaneamente no navegador do seu smartphone, sem precisar baixar nada de lojas de aplicativos.
+> Se quiserem, **apontem a câmera do celular para o QR Code** que está aí na tela.
 >
-> Fiquem à vontade para navegar e criar uma conta agora mesmo para acompanhar a experiência em tempo real enquanto apresento os próximos tópicos."
+> O Lumi já está 100% publicado e funcionando na Vercel no endereço `lumi-gen.vercel.app`. Como ele é um PWA, vocês não precisam baixar nada da loja de aplicativos — ele abre direto no navegador do smartphone com visual de aplicativo nativo.
+>
+> Vocês podem criar uma conta de teste agora mesmo para acompanhar a experiência em tempo real enquanto eu apresento os próximos tópicos."
 
-#### 🎯 Destaque técnico:
-- Demonstração imediata de maturidade do projeto: software pronto, funcional, publicado e acessível de imediato.
+💡 *Dica:* Dê uns 10 a 15 segundos para quem quiser apontar o celular antes de passar para o slide seguinte.
 
 ---
 
-### Slide 3: Problema
-- **Tempo estimado:** 1m 15s  
+### Slide 3: O Problema
 - **Tópico Oficial:** **Problema**  
-- **Elemento visual:** 3 cartões abordando Bloqueio Criativo, Privacidade e Custos/Lock-in.
+- **Visual:** 3 pontos de dor: Bloqueio Criativo, Riscos de Privacidade e Custos de Nuvem.
 
-#### 🗣️ O que falar:
-> "Para entender o Lumi, precisamos olhar para três grandes gargalos que criadores, desenvolvedores e empreendedores enfrentam hoje:
+#### 🗣️ Como falar (conectando com a dor real):
+> "Todo mundo que cria projetos — seja um estudante, um desenvolvedor ou um empreendedor — já passou por isso:
 >
-> Primeiro, o **bloqueio criativo**. Muitas vezes temos uma centelha de ideia, mas temos dificuldade em transformá-la em uma proposta clara, com público-alvo, modelo viável e categoria mercadológica definida.
+> 1. **O bloqueio criativo:** Você tem uma vaga ideia na cabeça, mas trava na hora de transformá-la em algo concreto, com público-alvo, nicho e proposta de valor definidos.
+> 2. **O medo do vazamento:** Quando a gente joga rascunhos de projetos sigilosos em chats normais de IA na internet, essas ideias ficam salvas em texto puro nos servidores de outras empresas. Ninguém quer ter sua ideia de negócio ou startup exposta.
+> 3. **E o custo:** As ferramentas prontas cobram mensalidades caras porque precisam pagar servidores gigantescos para rodar os modelos.
 >
-> Segundo, o **risco de privacidade e propriedade intelectual**. Quando recorremos a ferramentas comuns de IA na nuvem, nossos rascunhos de patentes, projetos sigilosos e planos de negócios são enviados em texto claro para servidores de terceiros. Isso cria uma vulnerabilidade grave de vazamento de propriedade intelectual.
->
-> Terceiro, o **custo e a centralização**. Soluções corporativas cobram mensalidades caras de usuários individuais para cobrir custos de servidores de inferência que o próprio desenvolvedor poderia consumir por conta própria.
->
-> Era necessário um sistema que resolvesse o processo criativo sem exigir que o usuário abrisse mão de sua privacidade e sem gerar uma fatura exorbitante de nuvem."
-
-#### 🎯 Destaque técnico:
-- Mostrar sensibilidade a problemas reais de mercado: segurança de dados sensíveis e economia de nuvem.
+> O desafio era claro: como criar uma ferramenta de ideação inteligente, que seja acessível a qualquer pessoa e que garanta que **nem mesmo nós, os criadores do app**, possamos bisbilhotar as ideias dos usuários?"
 
 ---
 
-### Slide 4: Solução
-- **Tempo estimado:** 1m 15s  
+### Slide 4: A Solução (Lumi)
 - **Tópico Oficial:** **Solução**  
-- **Elemento visual:** 3 pilares da solução Lumi: Ideação Estruturada, BYOK e Zero-Knowledge.
+- **Visual:** Os 3 pilares: Ideação Estruturada, BYOK e Criptografia Zero-Knowledge.
 
-#### 🗣️ O que falar:
-> "A resposta a esse cenário é o **Lumi**. Ele entrega uma solução fundamentada em três pilares:
+#### 🗣️ Como falar (claro e direto):
+> "A nossa resposta foi o **Lumi**, desenhado em cima de três ideias muito simples:
 >
-> 1. **Ideação Estruturada por IA:** Ao invés de uma resposta genérica em texto solto de chatbot, o Lumi utiliza IA generativa calibrada para entregar ideias ricas, já segmentadas em título, proposta de valor detalhada e categorização contextual.
->
-> 2. **Modelo BYOK (Bring Your Own Key):** O Lumi adota a filosofia 'Traga sua Própria Chave'. O usuário insere sua chave de API gratuita do Google AI Studio. Isso garante autonomia total: sem intermediários lendo suas mensagens, sem limite imposto pela nossa plataforma e com custo zero de IA para quem hospeda o aplicativo.
->
-> 3. **Soberania Zero-Knowledge:** Todas as credenciais de IA e o conteúdo confidencial das ideias são criptografados diretamente no navegador do usuário antes de serem transmitidos para o banco. O servidor armazena os dados, mas é matematicamente incapaz de ler seu conteúdo."
-
-#### 🎯 Destaque técnico:
-- Resolução simultânea de três dores: clareza na saída da IA, viabilidade financeira do projeto e conformidade com privacidade.
+> - **Primeiro, Ideação Estruturada:** Em vez de respostas longas e confusas de um chat comum, o Lumi entrega a ideia mastigada: um título de impacto, uma descrição completa com a dor e a solução, e a categoria certa (App, Negócio, Conteúdo, etc.).
+> - **Segundo, Modelo BYOK (Traga sua Própria Chave):** O usuário usa a sua própria chave gratuita do Google AI Studio. Isso traz duas grandes vantagens: o usuário tem cota própria e nós temos **custo zero** de infraestrutura com IA.
+> - **E terceiro, Segurança Zero-Knowledge:** Todas as informações sigilosas são trancadas com chave criptográfica dentro do navegador do usuário antes de viajar pela internet. O banco de dados guarda apenas códigos cifrados ininteligíveis."
 
 ---
 
-### Slide 5: Aplicativo
-- **Tempo estimado:** 1m 30s  
-- **Tópico Oficial:** **Aplicativo (PWA & UX)**  
-- **Elemento visual:** 4 cartões com as telas: Geração de Ideias, Histórico com Filtros, Configurações e PWA/Dark Mode.
+### Slide 5: O Aplicativo (PWA & Experiência do Usuário)
+- **Tópico Oficial:** **Aplicativo**  
+- **Visual:** As 4 frentes: Geração de Ideias, Histórico com Filtros, Configurações/BYOK e PWA/Dark Mode.
 
-#### 🗣️ O que falar:
-> "Entrando no **Aplicativo em si**, o Lumi foi concebido como um Progressive Web App (PWA) de alta responsividade, com design mobile-first e interface fluida:
+#### 🗣️ Como falar (mostrando o carinho com o usuário):
+> "Falando agora do aplicativo em si, ele foi construído pensando no uso diário no celular e no computador:
 >
-> - **Onboarding e Autenticação Segura:** A tela de login e cadastro conta com validação de política de senha forte em tempo real (mínimo 8 caracteres, maiúscula, minúscula, número e símbolo), fornecendo feedback visual imediato ao usuário enquanto ele digita.
-> - **Na Tela de Ideação**, o usuário é recebido com uma saudação personalizada e pode escolher entre categorias rápidas — como Aplicativos, Negócios, Criação de Conteúdo, Open Source e Hobbies — ou digitar um tema livre. A interface conta com micro-estados ricos do shadcn/ui: skeletons animados durante a inferência, badges estilizados e toasts de confirmação.
-> - **Na Tela de Histórico**, o usuário tem acesso a todas as suas ideias salvas. Implementamos filtragem dinâmica por categoria, marcação de favoritos e uma barra de busca textual em tempo real. Como as ideias ficam cifradas no banco, a busca ocorre em memória de forma segura após a decifragem local.
-> - **Na Tela de Configurações**, o usuário gerencia sua chave do Google Gemini de forma transparente, seleciona o modelo de linguagem desejado e conta com um botão de teste de conectividade em tempo real com o Google AI Studio.
-> - **Experiência PWA:** O app conta com Service Worker ativo em estratégia cache-first para o shell e manifest instalado como aplicativo nativo tanto no smartphone quanto no desktop, além de alternância suave entre tema Claro e Escuro.
-> - **Transição Arquitetural:** O ponto mais importante de usabilidade e segurança é que toda essa interface reativa **nunca** fala diretamente com o banco de dados. Tudo é mediado pela nossa arquitetura Serverless BFF, que veremos a seguir."
-
-#### 🎯 Destaque técnico:
-- Citar React 19, Tailwind CSS v4, componentes shadcn/ui (skeletons, badges, toasts, inputs controlados) e conformidade com padrões de acessibilidade e performance do Lighthouse.
+> - **Na tela inicial de Ideação:** O usuário escolhe a categoria com um clique ou digita o tema que quiser. Um detalhe importante que implementamos: **a ideia gerada não se perde**. Ela fica guardada com segurança no armazenamento local do navegador (`localStorage`) até que o usuário decida salvar no histórico ou descartar, mesmo que ele mude de aba ou recarregue a página sem querer.
+> - **No Histórico:** Todas as ideias salvas ficam acessíveis com busca instantânea por texto, filtro por categoria e marcação de favoritas.
+> - **Nas Configurações:** O usuário gerencia sua chave do Gemini, testa a conexão em tempo real e escolhe entre os modelos da família Flash (do 2.5 ao 3.8).
+> - **E o visual:** O app suporta modo claro e escuro, tem animações de carregamento (skeletons) e funciona até offline para o carregamento da interface graças ao Service Worker."
 
 ---
 
-### Slide 6: Arquitetura
-- **Tempo estimado:** 1m 30s  
-- **Tópico Oficial:** **Arquitetura de Software**  
-- **Elemento visual:** Diagrama de 3 camadas: PWA Client, Serverless BFF e Persistência/IA Externa.
+### Slide 6: Arquitetura de Software (Serverless BFF)
+- **Tópico Oficial:** **Arquitetura**  
+- **Visual:** Diagrama das 3 camadas: Navegador (PWA), Servidor (BFF na Vercel) e Nuvem (TursoDB + Gemini).
 
-#### 🗣️ O que falar:
-> "No que tange à **Arquitetura de Software**, optamos pelo padrão **Serverless BFF (Backend-For-Frontend)**, garantindo um desacoplamento estrito entre o cliente e o banco de dados:
+#### 🗣️ Como falar (mostrando maturidade de engenharia):
+> "Aqui está a espinha dorsal do projeto. A gente adotou o padrão **BFF (Backend-For-Frontend)** em três camadas bem isoladas:
 >
-> - **1. Camada de Apresentação (PWA):** Roda no navegador do usuário. É responsável pela renderização da interface, gerenciamento de estado via hooks nativos do React e, crucialmente, pela camada criptográfica Zero-Knowledge implementada em WebAssembly. O cliente **nunca** faz conexão direta com o banco de dados.
-> - **2. Camada de Mediação (Serverless BFF):** São funções serverless hospedadas na Vercel sob rotas `/api/*`. O BFF é o único serviço que possui as credenciais para falar com o banco. Ele valida as requisições, gerencia sessões com tokens JWT assinados via HMAC-SHA256 e injeta o `usuario_id` autenticado em todas as queries.
-> - **3. Camada de Persistência e IA Externa:** O banco de dados TursoDB fica isolado na borda. E para as chamadas de inferência de IA, o cliente comunica-se diretamente com a API do Google Gemini via REST, utilizando o cabeçalho `x-goog-api-key` com a chave do usuário decifrada estritamente na memória volátil da sessão."
-
-#### 🎯 Destaque técnico:
-- Blindagem total contra vazamento de credenciais: nenhuma chave de banco ou segredo de infraestrutura é embutida no bundle JavaScript do cliente.
+> 1. **Camada 1 — O Cliente (PWA):** Roda 100% no navegador. É ele quem cuida da tela e de toda a criptografia em WebAssembly. Importante frisar: **o navegador nunca toca diretamente no banco de dados**.
+> 2. **Camada 2 — O BFF Serverless:** São pequenas funções na Vercel sob a rota `/api/*`. Ele funciona como um segurança: confere quem está logado usando tokens JWT e é o único que tem permissão para falar com o banco de dados.
+> 3. **Camada 3 — Persistência e IA Externa:** O banco de dados TursoDB fica isolado na nuvem. E a IA do Gemini é chamada diretamente pelo cliente via REST usando a chave do próprio usuário mantida na memória da sessão.
+>
+> Essa separação impede qualquer vazamento de segredos de banco de dados para o frontend."
 
 ---
 
-### Slide 7: BD e /ou Web Service
-- **Tempo estimado:** 1m 30s  
+### Slide 7: Banco de Dados e Web Services
 - **Tópico Oficial:** **BD e /ou Web Service**  
-- **Elemento visual:** 2 blocos detalhados: TursoDB (Edge SQLite / Hrana v2) e Web Services Serverless (`/api/*`).
+- **Visual:** TursoDB (Edge SQLite via Hrana v2) e Endpoints da API REST (`/api/*`).
 
-#### 🗣️ O que falar:
-> "Aprofundando no **Banco de Dados e nos Web Services**, temos dois componentes fundamentais de infraestrutura:
+#### 🗣️ Como falar (desmistificando os termos difíceis):
+> "No banco de dados e nos serviços web, tomamos decisões focadas em leveza e velocidade:
 >
-> **1. Banco de Dados TursoDB:**
-> - Trata-se de uma engine baseada em SQLite distribuído geograficamente na borda (Edge).
-> - O grande diferencial técnico aqui foi a implementação do protocolo **Hrana v2 via HTTP Pipeline v2** sobre HTTPS. Não usamos drivers binários nativos pesados de C/C++ nem dependências desnecessárias; a comunicação é feita através de chamadas HTTP ultraleves e eficientes.
-> - O banco adota um modelo relacional normalizado: tabela `usuarios` e tabela `ideias` vinculadas com integridade referencial via `FOREIGN KEY (usuario_id) REFERENCES usuarios(id)`.
-> - **Criptografia Seletiva E2E:** Para conciliar busca performática com privacidade absoluta, os campos `titulo` e `categoria` trafegam e residem em texto claro, permitindo indexação e filtragem rápida, enquanto `descricao`, `tema` e `promptUsado` são cifrados com AES-256-GCM antes de tocar a rede.
-> - O banco opera sob o princípio de confiança zero: armazena apenas hashes canônicos e ciphertexts criptografados.
->
-> **2. Web Services RESTful (`/api/*`):**
-> - Desenvolvemos endpoints serverless seguindo a especificação padrão Web Fetch API (`Request` e `Response` nativos).
-> - As rotas `/api/auth/registrar`, `/api/auth/login` e `/api/auth/sessao` gerenciam o ciclo de vida do usuário sem trafegar senhas em texto puro.
-> - O endpoint `/api/ideias` responde aos verbos `GET` (listar), `POST` (criar ideia com payload E2E), `PATCH` (favoritar recebendo `{ id, favorito }`) e `DELETE` (recebendo `?id=<id>` via query param), sempre validando o Bearer Token no cabeçalho `Authorization` e garantindo que o usuário só consiga visualizar e manipular suas próprias ideias."
-
-#### 🎯 Destaque técnico:
-- Ausência de dependência pesada de ORMs, uso do protocolo nativo Hrana v2 e garantia de isolamento multitenant no SQL.
+> - **O Banco de Dados (TursoDB):** Usamos o Turso, que é uma tecnologia baseada em SQLite distribuída globalmente perto do usuário. O grande trunfo técnico aqui foi usar o protocolo **Hrana v2 via HTTP**. Em português claro: não precisamos instalar bibliotecas pesadas de banco em C ou C++; o banco conversa via requisições HTTP normais, leves e quase instantâneas.
+> - **Criptografia Seletiva:** Para o banco poder buscar rápido, deixamos o título e a categoria legíveis. Mas a descrição detalhada, o tema e o prompt original são salvos como blocos criptografados ilegíveis.
+> - **Os Web Services (`/api/*`):** Criamos endpoints REST completos:
+>   - `/api/auth/registrar`, `login` e `sessao` para gerenciar a conta;
+>   - `/api/ideias` com suporte a listar (GET), salvar (POST), favoritar (PATCH) e excluir (DELETE);
+>   - E rotas de configuração para perfil e troca de modelo.
+>   Tudo validado com token de sessão, garantindo que um usuário nunca acesse as ideias de outro."
 
 ---
 
-### Slide 8: IA (desenvolver)
-- **Tempo estimado:** 1m 45s  
+### Slide 8: Desenvolvimento de IA
 - **Tópico Oficial:** **IA (desenvolver)**  
-- **Elemento visual:** Engenharia de Prompt, Structured Outputs com JSON Schema e Integração REST.
+- **Visual:** Engenharia de Prompt, Structured Outputs com JSON Schema e Modelos Flash.
 
-#### 🗣️ O que falar:
-> "Chegando ao coração do desenvolvimento de Inteligência Artificial do Lumi, vou explicar **como a camada de IA foi desenvolvida e calibrada**:
+#### 🗣️ Como falar (destaque do trabalho de inteligência artificial):
+> "Chegando no ponto alto: **como a inteligência artificial foi desenvolvida**:
 >
-> **1. Engenharia de Prompts e System Instructions:**
-> - Desenvolvemos um prompt de sistema especializado que instrui o modelo a assumir o papel de um estrategista sênior de inovação.
-> - O prompt delimita a taxonomia de saída em cinco categorias mercadológicas pré-estabelecidas: `App`, `Negócio`, `Conteúdo`, `Open Source` e `Hobby`.
-> - Aplicamos engenharia de restrições negativas: o modelo é explicitamente instruído a não utilizar saudações, preâmbulos, jargões vazios ou respostas abstratas, forçando uma proposta acionável e focada na dor do público.
->
-> **2. Structured Outputs (Garantia de Esquema por JSON Schema):**
-> - Um problema comum ao integrar LLMs é a alucinação de formato (Markdown quebrado, chaves JSON ausentes, etc.).
-> - No Lumi, resolvemos isso no nível do motor da IA: ativamos o modo `responseMimeType: "application/json"` combinado com um `responseSchema` estrito da API Gemini v1beta.
-> - A IA é matematicamente compelida a retornar um objeto JSON estritamente tipado contendo `titulo` (string concisa), `descricao` (texto aprofundado) e `categoria` (enum fechado). Isso elimina a necessidade de parsers frágeis de regex no frontend.
->
-> **3. Arquitetura de Consumo sem Overhead:**
-> - Desenvolvemos a integração via chamada HTTP REST direta contra o endpoint v1beta do Google AI Studio. Eliminamos centenas de kilobytes de SDKs oficiais desnecessários.
-> - O usuário pode alternar dinamicamente entre 9 modelos suportados, com destaque para o `gemini-2.5-flash` (nosso modelo padrão com latência média inferior a 1 segundo) e suporte a modelos abertos de ponta como a família `gemma`."
-
-#### 🎯 Destaque técnico:
-- Domínio do recurso de **Structured Outputs** da API Gemini, garantindo 100% de previsibilidade na integração sem risco de falha de parsing.
+> - **1. Engenharia de Prompts:** Nós não jogamos uma pergunta solta para o modelo. Desenvolvemos instruções de sistema que colocam a IA no papel de um consultor sênior de inovação. Colocamos regras negativas rígidas: nada de saudações vazias como *'Olá, que ótima ideia!'*, nada de jargões corporativos sem sentido. A resposta precisa ser prática, direta e dividida nas 5 categorias do mercado.
+> - **2. Structured Outputs (Garantia de Esquema JSON):** Esse é o recurso mais sofisticado que usamos. Quem já trabalhou com IA sabe que às vezes ela devolve um texto quebrado que faz a tela travar. No Lumi, configuramos o Gemini com **JSON Schema estrito**. A IA é obrigada pelo próprio motor da Google a devolver um JSON perfeito contendo título, descrição e categoria. Não usamos nenhuma gambiarra de regex no frontend.
+> - **3. Chamadas REST Diretas:** Em vez de usar SDKs pesados de centenas de kilobytes, fazemos a chamada HTTP pura para a API v1beta do Gemini. E o usuário pode alternar livremente entre 5 modelos de altíssima velocidade da família Flash."
 
 ---
 
-### Slide 9: Segurança Zero-Knowledge & Criptografia
-- **Tempo estimado:** 1 min  
-- **Elemento visual:** Fluxo criptográfico: Senha -> Pepper -> Argon2id WASM -> vaultKeyHex -> AES-256-GCM -> TursoDB.
+### Slide 9: Segurança Zero-Knowledge e Criptografia
+- **Visual:** Passo a passo visual: Senha ➔ Argon2id ➔ Chave de Cofre ➔ AES-256-GCM.
 
-#### 🗣️ O que falar:
-> "Para garantir que o usuário seja o único dono das suas criações, desenvolvemos uma arquitetura de segurança **Zero-Knowledge**:
+#### 🗣️ Como falar (didático com a analogia do cofre):
+> "Vou explicar a nossa segurança de um jeito que qualquer pessoa entende:
 >
-> 1. No cadastro e login, o cliente executa o **Argon2id** compilado em WebAssembly rodando diretamente no browser do usuário, alocando 19 MiB de memória e 3 iterações. Ele gera o hash no formato canônico PHC padrão OWASP e o hash de autenticação com Pepper criptográfico (`HMAC-SHA256`). A senha plana nunca toca a rede nem os servidores.
-> 2. O servidor valida a credencial via verificação de hash canônico sem jamais conhecer a senha original, inviabilizando ataques de dicionário ou tabelas rainbow mesmo em caso de vazamento da base de dados.
-> 3. Uma chave simétrica `vaultKeyHex` de 256 bits é gerada e mantida estritamente na memória volátil da sessão do navegador. Ela é usada para cifrar a chave do Gemini e os campos sigilosos das ideias com algoritmo **AES-256-GCM**, com vetor de inicialização (IV) aleatório de 96 bits para cada registro.
+> Imaginem um cofre onde só você tem a chave. Se você entregar esse cofre trancado para um banco guardar, o gerente do banco não sabe e nem tem como descobrir o que tem lá dentro.
 >
-> O servidor e o banco de dados só enxergam strings criptografadas aleatórias."
-
-#### 🎯 Destaque técnico:
-- Conformidade estrita com padrões OWASP e uso de criptografia simétrica autenticada (GCM).
+> É exatamente isso que o Lumi faz:
+> 1. Quando o usuário digita sua senha, o navegador roda um algoritmo de ponta chamado **Argon2id** via WebAssembly. A senha nunca viaja pela rede; o que viaja é apenas um hash canônico com um segredo adicional do servidor (Pepper).
+> 2. No mesmo instante, o navegador gera uma **chave de cofre de 256 bits** que fica apenas na memória da aba.
+> 3. Essa chave cifra as ideias e a chave da API com **AES-256-GCM** — o mesmo padrão usado por instituições bancárias.
+>
+> Se um invasor invadir o banco de dados hoje, ele só vai encontrar uma sopa de letras e números criptografados. Nem nós conseguimos ler."
 
 ---
 
 ### Slide 10: Qualidade, Testes e Confiabilidade
-- **Tempo estimado:** 1 min  
-- **Elemento visual:** 3 métricas de destaque: 101 testes Vitest, 0 erros TypeScript, build em ~1.3s.
+- **Visual:** 3 números principais: 103 testes passando, 0 erros de tipo, build em 1.4s.
 
-#### 🗣️ O que falar:
-> "A confiabilidade do Lumi foi garantida por engenharia de testes rigorosa:
+#### 🗣️ Como falar (demonstrando seriedade técnica):
+> "Para garantir que nada quebre na mão do usuário, investimos pesado em testes automatizados:
 >
-> - Possuímos uma suíte com **101 testes automatizados passando no Vitest**, cobrindo todas as funções críticas: derivação de chaves criptográficas, verificação de adulteração de ciphertext no AES-GCM, isolamento de rotas no BFF e comunicação com a API do Gemini.
-> - O código possui tipagem estrita com **0 erros de compilação no TypeScript** (`tsc --noEmit`).
-> - O processo de build de produção com Vite leva apenas 1.3 segundos, gerando um bundle enxuto com Service Worker configurado para cache imediato dos recursos estáticos."
-
-#### 🎯 Destaque técnico:
-- Alta cobertura de testes em camadas críticas (criptografia e BFF), demonstrando disciplina de desenvolvimento e maturidade de software.
+> - Temos hoje **103 testes automatizados rodando e passando com 100% de sucesso no Vitest**. Eles testam a criptografia ponta a ponta, os endpoints da API, a persistência de ideias pendentes e o cliente do Gemini.
+> - O código está em TypeScript com checagem estrita: **zero erros de compilação**.
+> - E o processo de compilação do Vite leva apenas 1.4 segundos, gerando arquivos ultracompactos."
 
 ---
 
-### Slide 11: Conclusão & Demonstração Prática
-- **Tempo estimado:** 1m 30s  
-- **Elemento visual:** Diferenciais do projeto, 4 passos da demonstração ao vivo e **QR Code interativo com link direto para o PWA em produção na Vercel (`https://lumi-gen.vercel.app/`)**.
+### Slide 11: Conclusão & Demonstração ao Vivo
+- **Visual:** Diferenciais alcançados, os 4 passos da demonstração e QR Code de encerramento.
 
-#### 🗣️ O que falar:
-> "Em conclusão, o Lumi atinge plenamente todos os objetivos propostos:
-> - Resolve um **problema real** de bloqueio criativo;
-> - Oferece um **aplicativo completo**, intuitivo e multiplataforma;
-> - Utiliza um **banco de dados moderno na borda** e **web services serverless desacoplados**;
-> - Implementa **desenvolvimento avançado de IA** com engenharia de prompts e Structured Outputs JSON;
-> - E eleva o padrão de **privacidade** com segurança Zero-Knowledge e custo zero de infraestrutura de inferência.
+#### 🗣️ Como falar (fechando com chave de ouro):
+> "Em resumo, o Lumi entrega:
+> - Um **problema real resolvido**;
+> - Um **aplicativo PWA completo e funcional**;
+> - Uma **arquitetura moderna desacoplada** com banco na borda;
+> - Um **uso profissional de IA com esquemas estruturados**;
+> - E **privacidade soberana com custo zero de inferência**.
 >
-> Vocês podem apontar a câmera do celular para o **QR Code exibido no slide** para abrir a aplicação em produção agora mesmo nos seus smartphones e acompanhar a demonstração em tempo real.
->
-> Gostaria agora de conduzir uma breve demonstração prática no navegador, onde veremos o cadastro, a configuração da chave Gemini, a geração de uma nova ideia em tempo real e a inspeção dos dados criptografados salvos no banco.
->
-> Muito obrigado pela atenção de todos e estou aberto às considerações da banca."
+> Agora, convido os professores para vermos o Lumi funcionando na prática no navegador."
 
 ---
 
-## 💡 Dicas de Ouro para a Demonstração Prática
+## 🎬 Roteiro Prático da Demonstração ao Vivo (2 a 3 Minutos)
 
-Durante os 2 a 3 minutos da demonstração ao vivo:
+Tenha o navegador aberto em [lumi-gen.vercel.app](https://lumi-gen.vercel.app/) em uma aba anônima ou limpa:
 
-1. **Passo 1 — Cadastro Rápido:**  
-   Abra a aba de cadastro, mostre a validação de senha em tempo real (mínimo 8 caracteres, maiúscula, minúscula, número e símbolo) e crie uma conta de teste. Explique: *"Aqui o Argon2id já derivou a chave de cofre localmente em WebAssembly"*.
-2. **Passo 2 — Conexão com Gemini (BYOK):**  
-   Vá na aba Configurações, insira a chave do Google AI Studio e clique no botão de teste. Mostre o badge verde indicando conectividade imediata.
-3. **Passo 3 — Geração da Ideia:**  
-   Vá na tela principal, selecione a categoria `App` ou digite um tema como *"Gestão de tempo para estudantes"* e clique em **Gerar Ideia**. Mostre o resultado: título curto de impacto, descrição detalhada da dor/solução e classificação automática.
-4. **Passo 4 — Histórico e Prova de Criptografia:**  
-   Abra a aba Histórico, favorite a ideia gerada, filtre por categoria e, se o professor perguntar sobre segurança, abra a aba Rede (Network) do DevTools do navegador para mostrar que o payload enviado para `/api/ideias` tem a descrição cifrada em caracteres hexadecimais ininteligíveis.
+1. **Passo 1 — Cadastro com Senha Forte:**
+   - Clique em *"Criar conta"*.
+   - Digite seu nome, e-mail e comece a digitar uma senha fraca (ex: `12345`). Mostre a lista visual de requisitos acendendo em verde um a um conforme você adiciona maiúscula, minúscula, número e símbolo.
+   - *Fala:* "Aqui o checklist de senha guia o usuário em tempo real, e o Argon2id já prepara a chave de cofre local."
+2. **Passo 2 — Configuração da Chave Gemini (BYOK):**
+   - Entre no app, vá na aba **Configurações**.
+   - Cole uma chave de teste do Google AI Studio e clique em **Testar Conexão**. Mostre a resposta de sucesso com badge verde.
+   - *Fala:* "A chave é testada ao vivo contra os servidores da Google e salva cifrada com AES-256-GCM."
+3. **Passo 3 — Gerar uma Ideia em Tempo Real:**
+   - Volte para a aba **Gerar**.
+   - Selecione a tag **App** e digite um tema como: *"Controle de hábitos com gamificação"*.
+   - Clique em **Gerar ideia**. Aguarde 1 a 2 segundos enquanto a barra animada processa.
+   - Mostre o resultado: título limpo, proposta detalhada e categoria selecionada.
+   - *Destaque:* Mude para a aba de Configurações e volte para a aba Gerar. Mostre que a ideia continua intacta lá! Explique: *"Implementamos persistência local para que o usuário nunca perca a ideia gerada se trocar de aba sem querer"*.
+4. **Passo 4 — Salvar e Ver no Histórico:**
+   - Clique no botão **Salvar**. Mostre a notificação toast *"Salvo no histórico"*.
+   - Vá para a aba **Histórico**, favorite a ideia com a estrelinha e faça uma busca rápida na caixinha de pesquisa.
+   - *Fala para encerrar:* "Pronto! A ideia foi salva no TursoDB com descrição cifrada e descriptografada na hora na nossa máquina."
 
 ---
 
-## ❓ Possíveis Perguntas da Banca e Como Responder
+## 🛡️ Respostas Rápidas para Perguntas da Banca
 
-### 1. *"Por que vocês escolheram o modelo BYOK ao invés de centralizar a chave da API no servidor?"*
-> **Resposta:**  
-> *"O modelo BYOK resolve dois problemas críticos simultaneamente: viabilidade econômica e privacidade. Com o BYOK, nosso custo operacional com inferência de IA é zero, permitindo que a plataforma escale infinitamente sem custos de nuvem para a universidade ou empresa. Além disso, a chave pertence ao usuário, garantindo que suas requisições não sejam intermediadas ou lidas por terceiros."*
+**Pergunta 1: "Por que vocês usaram BYOK em vez de colocar a chave no servidor?"**  
+> *"Por dois motivos simples: viabilidade e privacidade. Se colocássemos a chave no servidor, teríamos que pagar pela IA de todos os usuários ou cobrar mensalidade. Com o BYOK, nosso custo é zero e o app pode crescer sem limites. Além disso, nenhuma consulta passa por servidores intermediários nossos."*
 
-### 2. *"Como vocês garantem que a IA nunca quebre o layout da aplicação com respostas inválidas?"*
-> **Resposta:**  
-> *"Utilizamos o recurso nativo de Structured Outputs da API Gemini v1beta com `responseMimeType: application/json` e `responseSchema`. O próprio motor de inferência da Google garante que cada token gerado respeite o esquema formal do JSON Schema, devolvendo estritamente os tipos definidos (string para título, string para descrição e enum fechado para categoria). Isso evita qualquer erro de parsing ou quebra de UI."*
+**Pergunta 2: "Como vocês têm certeza de que a IA não vai inventar um formato maluco que quebre a tela?"**  
+> *"Usamos o recurso nativo de Structured Outputs da API Gemini com `responseSchema`. Não pedimos em texto livre; nós passamos um contrato JSON estrito. O próprio motor da Google garante que a resposta venha com campos tipados: título curto, descrição longa e categoria restrita."*
 
-### 3. *"Qual a vantagem de usar TursoDB via HTTP Pipeline em vez de uma biblioteca tradicional de banco de dados?"*
-> **Resposta:**  
-> *"O TursoDB utiliza o protocolo Hrana v2 sobre HTTPS através de requisições HTTP normais. Isso elimina a necessidade de compilar binários nativos de C/C++ ou drivers dependentes do sistema operacional nas funções serverless da Vercel, resultando em cold starts praticamente inexistentes, compatibilidade universal e latência ultra baixa com réplicas distribuídas na borda."*
+**Pergunta 3: "O que é esse tal de Hrana v2 do TursoDB?"**  
+> *"O Hrana v2 é o protocolo oficial do Turso para falar com o banco através de requisições HTTP normais. A vantagem prática é que não precisamos de drivers pesados de C++ ou compilações nativas nas funções serverless da Vercel. É leve, rápido e funciona em qualquer ambiente."*
 
-### 4. *"Se o banco for invadido, o que o atacante consegue ver?"*
-> **Resposta:**  
-> *"Ele verá apenas o nome e email do usuário, o título da ideia e hashes canônicos PHC do Argon2id com Pepper de servidor. A descrição detalhada, o tema e a chave de API do Gemini estão cifrados com AES-256-GCM. Sem a senha mestre do usuário para derivar o vaultKey localmente, é matematicamente inviável decifrar o conteúdo protegido."*
+**Pergunta 4: "Se alguém conseguir invadir o banco de dados, o que ele consegue roubar?"**  
+> *"Ele verá apenas nomes, e-mails, títulos das ideias e hashes criptográficos canônicos do Argon2id. O conteúdo detalhado das ideias e a chave de API do usuário estão cifrados com AES-256-GCM. Sem a senha original do usuário, que nunca é salva em lugar nenhum, é matematicamente impossível decifrar."*

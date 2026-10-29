@@ -183,8 +183,8 @@ describe('gemini.ts', () => {
       json: () => Promise.resolve({}),
     });
 
-    await testarConexaoGemini('key', 'gemini-2.5-pro');
+    await testarConexaoGemini('key', 'gemini-3.5-flash');
     const call = (globalThis.fetch as any).mock.calls[0];
-    expect(call[0]).toContain('gemini-2.5-pro');
+    expect(call[0]).toContain('gemini-3.5-flash');
   });
 });

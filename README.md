@@ -22,8 +22,8 @@
 - **PWA**: Service Worker cache-first + `manifest.webmanifest`
 - **Backend For Frontend (BFF)**: Vercel Serverless Functions (`/api/*`) com Web Fetch API
 - **Banco de Dados**: TursoDB via HTTP Pipeline v2 (Hrana v2 sobre HTTPS)
-- **Runtime & Testes**: Bun + Vitest (98 testes unitários passando)
-- **IA**: Google Gemini REST v1beta (`gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3.5-flash`, `gemma-4-26b-it`, etc.)
+- **Runtime & Testes**: Bun + Vitest (103 testes unitários passando)
+- **IA**: Google Gemini REST v1beta (`gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash`)
 
 ---
 

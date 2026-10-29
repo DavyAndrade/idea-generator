@@ -19,6 +19,9 @@ import {
   solicitarRecuperacaoSenha,
   redefinirSenhaComToken,
   salvarEnvelopeRecuperacao,
+  obterIdeiaPendente,
+  salvarIdeiaPendente,
+  limparIdeiaPendente,
 } from '@/lib/storage';
 
 // Mocks fetch for the Serverless BFF (/api/*) endpoints
@@ -49,6 +52,13 @@ beforeEach(() => {
     getItem: (key: string) => store[key] ?? null,
     setItem: (key: string, val: string) => { store[key] = val; },
     removeItem: (key: string) => { delete store[key]; },
+  };
+  const localStore: Record<string, string> = {};
+  (globalThis as any).localStorage = {
+    getItem: (key: string) => localStore[key] ?? null,
+    setItem: (key: string, val: string) => { localStore[key] = val; },
+    removeItem: (key: string) => { delete localStore[key]; },
+    clear: () => { Object.keys(localStore).forEach(k => delete localStore[k]); },
   };
 });
 
@@ -115,12 +125,12 @@ describe('storage - configurações', () => {
 
     const mock = mockFetchSequence([
       { response: { ok: true } }, // PATCH config
-      { response: { modelo: 'gemini-2.5-pro' } }, // GET config
+      { response: { modelo: 'gemini-3.5-flash' } }, // GET config
     ]);
 
-    await salvarModelo('gemini-2.5-pro');
+    await salvarModelo('gemini-3.5-flash');
     const modelo = await lerModelo();
-    expect(modelo).toBe('gemini-2.5-pro');
+    expect(modelo).toBe('gemini-3.5-flash');
     expect(mock.mock.calls[0][0]).toBe('/api/usuario/config');
     expect(mock.mock.calls[1][0]).toBe('/api/usuario/config');
   });
@@ -508,13 +518,13 @@ describe('storage - sessão e auth', () => {
       { response: { ok: true } },
     ]);
 
-    await salvarModelo('gemini-2.5-pro');
+    await salvarModelo('gemini-3.5-flash');
 
     const call = mock.mock.calls[0];
     expect(call[0]).toBe('/api/usuario/config');
     expect(call[1].method).toBe('PATCH');
     const body = JSON.parse(call[1].body);
-    expect(body.modelo).toBe('gemini-2.5-pro');
+    expect(body.modelo).toBe('gemini-3.5-flash');
   });
 
   it('lerModelo usa /api/usuario/config quando há sessão', async () => {
@@ -528,11 +538,11 @@ describe('storage - sessão e auth', () => {
     await registrarUsuario({ nome: 'Teste', email: 't@t.com', senha: 'Senha@123' });
 
     const mock = mockFetchSequence([
-      { response: { modelo: 'gemini-2.5-pro' } },
+      { response: { modelo: 'gemini-3.5-flash' } },
     ]);
 
     const modelo = await lerModelo();
-    expect(modelo).toBe('gemini-2.5-pro');
+    expect(modelo).toBe('gemini-3.5-flash');
     expect(mock.mock.calls[0][0]).toBe('/api/usuario/config');
   });
 
@@ -872,5 +882,33 @@ describe('storage - recuperação de senha', () => {
   it('salvarEnvelopeRecuperacao não faz nada quando não autenticado', async () => {
     // Sem sessão — deve retornar sem lançar erro
     await expect(salvarEnvelopeRecuperacao('LUMI-XXXX-XXXX-XXXX-XXXX')).resolves.toBeUndefined();
+  });
+
+  describe('Ideia Pendente em localStorage', () => {
+    it('obterIdeiaPendente retorna null quando vazio', () => {
+      expect(obterIdeiaPendente()).toBeNull();
+    });
+
+    it('salva, lê e limpa ideia pendente corretamente', () => {
+      salvarIdeiaPendente({
+        titulo: 'Ideia Teste',
+        descricao: 'Descricao Teste',
+        categoria: 'App',
+        tema: 'Produtividade',
+        promptUsado: 'Prompt X',
+      });
+
+      const pendente = obterIdeiaPendente();
+      expect(pendente).toEqual({
+        titulo: 'Ideia Teste',
+        descricao: 'Descricao Teste',
+        categoria: 'App',
+        tema: 'Produtividade',
+        promptUsado: 'Prompt X',
+      });
+
+      limparIdeiaPendente();
+      expect(obterIdeiaPendente()).toBeNull();
+    });
   });
 });

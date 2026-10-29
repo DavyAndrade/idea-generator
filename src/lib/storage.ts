@@ -461,3 +461,54 @@ export async function alternarFavorito(
 
   return undefined;
 }
+
+export interface IdeiaPendente {
+  titulo: string;
+  descricao: string;
+  categoria: string;
+  tema: string;
+  promptUsado?: string;
+}
+
+const STORAGE_KEY_IDEIA_PENDENTE = 'lumi_ideia_pendente';
+
+export function obterIdeiaPendente(): IdeiaPendente | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_IDEIA_PENDENTE);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed === 'object' &&
+      typeof parsed.titulo === 'string' &&
+      typeof parsed.descricao === 'string'
+    ) {
+      return {
+        titulo: parsed.titulo,
+        descricao: parsed.descricao,
+        categoria: typeof parsed.categoria === 'string' ? parsed.categoria : 'App',
+        tema: typeof parsed.tema === 'string' ? parsed.tema : '',
+        promptUsado: typeof parsed.promptUsado === 'string' ? parsed.promptUsado : undefined,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function salvarIdeiaPendente(ideia: IdeiaPendente): void {
+  try {
+    localStorage.setItem(STORAGE_KEY_IDEIA_PENDENTE, JSON.stringify(ideia));
+  } catch {
+    // ignorar
+  }
+}
+
+export function limparIdeiaPendente(): void {
+  try {
+    localStorage.removeItem(STORAGE_KEY_IDEIA_PENDENTE);
+  } catch {
+    // ignorar
+  }
+}

@@ -59,12 +59,14 @@ export function ResultadoGerar({
   categoria,
   onCopiar,
   onSalvar,
+  onDescartar,
 }: {
   titulo: string;
   descricao: string;
   categoria: string;
   onCopiar: () => void;
   onSalvar: () => void;
+  onDescartar?: () => void;
 }) {
   return (
     <Card>
@@ -78,6 +80,17 @@ export function ResultadoGerar({
         <p className="text-sm whitespace-pre-wrap">{descricao}</p>
       </CardContent>
       <div className="flex items-center justify-end gap-1 p-3">
+        {onDescartar && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onDescartar}
+            className="text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 size={14} className="mr-1" />
+            Descartar
+          </Button>
+        )}
         <Button variant="ghost" size="sm" onClick={onCopiar}>
           <Copy size={14} />
         </Button>

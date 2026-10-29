@@ -22,7 +22,7 @@ Todos na raiz do repositório:
 - Tailwind CSS v4 + shadcn/ui
 - PWA (Service Worker cache-first para shell + manifest.webmanifest)
 - TursoDB via HTTP Pipeline v2 (Hrana v2) — **não** `@libsql/client`
-- Gemini REST direto (`gemini-2.5-flash` padrão; modelos: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash`, `gemma-4-26b-it`, `gemma-4-31b-it`) — **não** SDK oficial
+- Gemini REST direto (`gemini-2.5-flash` padrão; modelos: `gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash`) — **não** SDK oficial
 - Bun como runtime e gerenciador de pacotes
 - Estado: React hooks (`useState` / `useEffect`) — **não** Redux/Zustand
 - DI: funções puras em `lib/storage.ts` e `lib/gemini.ts` — **não** context providers complexos
@@ -114,7 +114,7 @@ CREATE TABLE ideias (
 - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent`
 - Auth: header `x-goog-api-key`
 - `responseMimeType: application/json` + `responseSchema` com `titulo`, `descricao`, `categoria`
-- Modelos disponíveis: `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.5-pro`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash`, `gemma-4-26b-it`, `gemma-4-31b-it` (`MODELOS_DISPONIVEIS` em `types.ts`)
+- Modelos disponíveis: `gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-3.6-flash`, `gemini-3.7-flash`, `gemini-3.8-flash` (`MODELOS_DISPONIVEIS` em `types.ts`)
 - Modelo padrão: `gemini-2.5-flash`; usuário troca nas configurações
 - Sem chave configurada → UI mostra banner, não tenta chamar API
 

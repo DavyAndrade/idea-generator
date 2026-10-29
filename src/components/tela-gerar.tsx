@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { CATEGORIAS, type ModeloGemini } from "../types";
 import { gerarIdeiaGemini } from "../lib/gemini";
-import { salvarIdeia } from "../lib/storage";
+import {
+  salvarIdeia,
+  obterIdeiaPendente,
+  salvarIdeiaPendente,
+  limparIdeiaPendente,
+  type IdeiaPendente,
+} from "../lib/storage";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
@@ -17,16 +23,16 @@ interface TelaGerarProps {
 
 export function TelaGerar({ chave, modelo, usuarioNome }: TelaGerarProps) {
   const primeiroNome = usuarioNome?.trim().split(/\s+/)[0];
-  const [tema, setTema] = useState("");
-  const [categoria, setCategoria] = useState<string>(CATEGORIAS[0]);
+  const [pendenteInicial] = useState<IdeiaPendente | null>(() => obterIdeiaPendente());
+  const [tema, setTema] = useState(() => pendenteInicial?.tema ?? "");
+  const [categoria, setCategoria] = useState<string>(
+    () => pendenteInicial?.categoria ?? CATEGORIAS[0]
+  );
   const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [resultado, setResultado] = useState<null | {
-    titulo: string;
-    descricao: string;
-    categoria: string;
-    promptUsado?: string;
-  }>(null);
+  const [resultado, setResultado] = useState<IdeiaPendente | null>(
+    () => pendenteInicial
+  );
   const [toast, setToast] = useState<{
     show: boolean;
     msg: string;
@@ -38,6 +44,7 @@ export function TelaGerar({ chave, modelo, usuarioNome }: TelaGerarProps) {
     setGerando(true);
     setErro(null);
     setResultado(null);
+    limparIdeiaPendente();
     try {
       const ideia = await gerarIdeiaGemini({
         tema: tema.trim(),
@@ -45,12 +52,15 @@ export function TelaGerar({ chave, modelo, usuarioNome }: TelaGerarProps) {
         chave,
         modelo,
       });
-      setResultado({
+      const novaPendente: IdeiaPendente = {
         titulo: ideia.titulo,
         descricao: ideia.descricao,
         categoria: ideia.categoria || categoria,
         promptUsado: ideia.promptUsado,
-      });
+        tema: tema.trim(),
+      };
+      salvarIdeiaPendente(novaPendente);
+      setResultado(novaPendente);
     } catch (e: unknown) {
       setErro(e instanceof Error ? e.message : String(e));
     } finally {
@@ -66,16 +76,23 @@ export function TelaGerar({ chave, modelo, usuarioNome }: TelaGerarProps) {
     setToast({ show: true, msg: "Copiado!", icon: "copy" });
   };
 
+  const descartar = () => {
+    limparIdeiaPendente();
+    setResultado(null);
+    setToast({ show: true, msg: "Ideia descartada", icon: "check" });
+  };
+
   const salvar = async () => {
     if (!resultado) return;
     try {
       await salvarIdeia({
         titulo: resultado.titulo,
         descricao: resultado.descricao,
-        tema: tema.trim(),
+        tema: (resultado.tema || tema).trim(),
         categoria: resultado.categoria || categoria,
         promptUsado: resultado.promptUsado,
       });
+      limparIdeiaPendente();
       setResultado(null);
       setTema("");
       setToast({ show: true, msg: "Salvo no histórico", icon: "save" });
@@ -140,9 +157,10 @@ export function TelaGerar({ chave, modelo, usuarioNome }: TelaGerarProps) {
           <ResultadoGerar
             titulo={resultado.titulo}
             descricao={resultado.descricao}
-            categoria={categoria}
+            categoria={resultado.categoria || categoria}
             onCopiar={copiar}
             onSalvar={salvar}
+            onDescartar={descartar}
           />
         )}
       </div>
