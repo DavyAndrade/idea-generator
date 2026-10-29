@@ -9,6 +9,7 @@ import {
   derivarHashLegado,
   aplicarPepper,
   verificarArgon2id,
+  extrairSaltDePHC,
   cifrarTexto,
   decifrarTexto,
   constantTimeEquals,
@@ -127,13 +128,12 @@ export async function registrarUsuario(params: {
   const criadoEm = new Date().toISOString();
 
   const rows = await query<Record<string, unknown>>(
-    `INSERT INTO usuarios (nome, email, salt, credencial_hash, gemini_key_cifrada, gemini_modelo, criado_em)
-     VALUES (?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO usuarios (nome, email, credencial_hash, gemini_key_cifrada, gemini_modelo, criado_em)
+     VALUES (?, ?, ?, ?, ?, ?)
      RETURNING *`,
     [
       params.nome,
       emailLower,
-      saltHex,
       authHashHex,
       null,
       MODELO_PADRAO,
@@ -182,11 +182,13 @@ export async function loginUsuario(params: {
   const credHash = String(row.credencial_hash);
   if (credHash.startsWith('$argon2')) {
     autenticado = await verificarArgon2id(senhaPeppered, credHash);
-    ({ vaultKeyHex } = await derivarChaves(params.senha, String(row.salt)));
+    const saltHex = extrairSaltDePHC(credHash);
+    ({ vaultKeyHex } = await derivarChaves(params.senha, saltHex));
   } else {
-    // Fallback legado: hash opaco sem prefixo (64 hex chars)
-    const authHashHex = await derivarHashLegado(params.senha, String(row.salt));
-    ({ vaultKeyHex } = await derivarChaves(params.senha, String(row.salt)));
+    // Fallback legado: hash opaco sem prefixo (64 hex chars) — salt em coluna separada
+    const saltHex = String(row.salt ?? '');
+    const authHashHex = await derivarHashLegado(params.senha, saltHex);
+    ({ vaultKeyHex } = await derivarChaves(params.senha, saltHex));
     autenticado = constantTimeEquals(authHashHex, credHash);
   }
 

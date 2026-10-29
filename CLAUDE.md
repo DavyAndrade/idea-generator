@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `src/components/` — app components: `App.tsx` (tab shell), `app-bar.tsx`, `tela-auth.tsx` (login/register with strong password policy: 8+ chars, upper, lower, digit, special char), `banner-sem-chave.tsx`, `tela-gerar.tsx`, `tela-historico.tsx` (category filter: App, Negócio, Conteúdo, Open Source, Hobby + Somente favoritas + busca LIKE), `tela-configuracao.tsx`, `ideia-card.tsx`, `acao-toast.tsx`.
 - `src/components/ui/` — shadcn-style primitives: `button.tsx`, `card.tsx`, `input.tsx`, `badge.tsx`.
 - `src/types.ts` — `Ideia`, `UsuarioSessao`, `Categoria`, `ModeloGemini`, `CATEGORIAS`, `MODELOS_DISPONIVEIS` (gemini-2.5-flash, gemini-2.5-flash-lite, gemini-2.5-pro, gemini-3.5-flash, gemini-3.6-flash, gemini-3.7-flash, gemini-3.8-flash, gemma-4-26b-it, gemma-4-31b-it), `MODELO_PADRAO`.
+- `src/lib/crypto.ts` exports: `gerarSaltHex`, `derivarChaves` (Argon2id + Pepper → PHC `$argon2id` + vaultKeyHex), `verificarArgon2id`, `cifrarTexto`/`decifrarTexto` (AES-256-GCM), `constantTimeEquals`.
 - `src/index.css` — Tailwind v4 + shadcn theme vars (light/dark via `:root` / `html.dark`).
 - `public/` — `manifest.webmanifest`, `sw.js`, `icon.svg`.
 

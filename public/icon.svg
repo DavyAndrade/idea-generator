@@ -1,47 +1,76 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <!-- Fundo: squircle escuro minimalista -->
-  <rect width="512" height="512" rx="112" fill="#0d0914"/>
-  <rect width="504" height="504" x="4" y="4" rx="108" fill="none" stroke="#7c3aed" stroke-width="1" opacity="0.25"/>
+  <defs>
+    <!-- Gradiente de fundo sutil -->
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#120824"/>
+      <stop offset="100%" stop-color="#07030d"/>
+    </linearGradient>
 
-  <!-- Bulbo da lâmpada: contorno e preenchimento flat 2D roxo -->
+    <!-- Gradiente vibrante para o bulbo da lâmpada -->
+    <linearGradient id="bulbGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+
+    <!-- Gradiente para a base da lâmpada -->
+    <linearGradient id="baseGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9333ea"/>
+      <stop offset="100%" stop-color="#6b21a8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo squircle estilo app icon (Apple / Android / PWA) -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="504" height="504" x="4" y="4" rx="112" fill="none" stroke="#a855f7" stroke-width="2" stroke-opacity="0.25"/>
+
+  <!-- Halo de iluminação difusa (plano 2D, baixa opacidade) -->
+  <circle cx="256" cy="224" r="140" fill="#9333ea" opacity="0.12"/>
+
+  <!-- Raios de luz radiantes (simétricos, minimalistas) -->
+  <g stroke="#c084fc" stroke-width="12" stroke-linecap="round" opacity="0.85">
+    <!-- Topo -->
+    <line x1="256" y1="56" x2="256" y2="82"/>
+    <!-- Superior Esquerdo (45°) -->
+    <line x1="138" y1="106" x2="120" y2="88"/>
+    <!-- Superior Direito (45°) -->
+    <line x1="374" y1="106" x2="392" y2="88"/>
+    <!-- Lateral Esquerda -->
+    <line x1="90" y1="224" x2="64" y2="224"/>
+    <!-- Lateral Direita -->
+    <line x1="422" y1="224" x2="448" y2="224"/>
+  </g>
+
+  <!-- Bulbo da lâmpada: Silhueta vetorizada precisa -->
   <path
-    d="M 256 100
-       C 184 100 144 148 144 214
-       C 144 272 176 308 206 348
-       C 216 358 224 370 224 384
-       L 288 384
-       C 288 370 296 358 306 348
-       C 336 308 368 272 368 214
-       C 368 148 328 100 256 100 Z"
-    fill="#8b5cf6"
+    d="M 256 116
+       C 324 116 368 162 368 224
+       C 368 268 334 300 316 336
+       L 302 358
+       L 210 358
+       L 196 336
+       C 178 300 144 268 144 224
+       C 144 162 188 116 256 116 Z"
+    fill="#1a0c30"
+    stroke="url(#bulbGradient)"
+    stroke-width="16"
+    stroke-linejoin="round"
   />
 
-  <!-- Contorno do bulbo para definição flat -->
+  <!-- Filamento interior: Centelha de ideia (Brilho branco puro) -->
   <path
-    d="M 256 100
-       C 184 100 144 148 144 214
-       C 144 272 176 308 206 348
-       C 216 358 224 370 224 384
-       L 288 384
-       C 288 370 296 358 306 348
-       C 336 308 368 272 368 214
-       C 368 148 328 100 256 100 Z"
-    fill="none"
-    stroke="#7c3aed"
-    stroke-width="3"
-  />
-
-  <!-- Filamento Lumi: estrela de 4 pontas flat -->
-  <polygon
-    points="256,308 268,332 292,332 276,348 282,372 256,358 230,372 236,348 220,332 244,332"
+    d="M 256 168
+       Q 256 224 312 224
+       Q 256 224 256 280
+       Q 256 224 200 224
+       Q 256 224 256 168 Z"
     fill="#ffffff"
   />
 
-  <!-- Base da lâmpada: 3 linhas horizontais minimalistas -->
-  <path d="M 196 384 L 316 384" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
-  <path d="M 204 396 L 308 396" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
-  <path d="M 212 408 L 300 408" stroke="#a855f7" stroke-width="4" stroke-linecap="round"/>
+  <!-- Núcleo central da centelha -->
+  <circle cx="256" cy="224" r="7" fill="#f5d0fe"/>
 
-  <!-- Ponta de contato inferior -->
-  <rect x="240" y="416" width="32" height="20" fill="#7c3aed"/>
+  <!-- Rosca / Base da lâmpada: traços horizontais arredondados em harmonia -->
+  <rect x="210" y="376" width="92" height="14" rx="7" fill="url(#baseGradient)"/>
+  <rect x="220" y="398" width="72" height="14" rx="7" fill="url(#baseGradient)"/>
+  <rect x="234" y="420" width="44" height="12" rx="6" fill="#6b21a8"/>
 </svg>

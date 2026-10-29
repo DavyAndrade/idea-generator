@@ -46,7 +46,7 @@ Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts`, `lib/
 Zero-knowledge authentication via Web Crypto API (nunca expõe algoritmo no hash).
 
 - `lib/crypto.ts`: `gerarSaltHex()`, `derivarChaves(senha, saltHex, pepper?)` — **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256**, produzindo `authHashHex` no formato **PHC canônico** `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP, desestimula atacantes offline) + `vaultKeyHex` (64 hex chars / 256 bits para AES-256-GCM), `verificarArgon2id(senhaPeppered, phcHash)` para verificação de login, `cifrarTexto()` / `decifrarTexto()` (AES-256-GCM IV aleatório), `constantTimeEquals()`
-- `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
+- `lib/storage.ts`: `registrarUsuario()`, `loginUsuario()`, `obterSessaoAtual()`, `encerrarSessao()`, `atualizarNomeUsuario()`, `lerChave()` / `salvarChave()` (autenticado = AES-256-GCM cifrada, legado = texto plano)
 - `components/tela-auth.tsx`: exige senha forte no cadastro (mínimo 8 caracteres, 1 maiúscula, 1 minúscula, 1 número e 1 caractere especial) com checklist em tempo real.
 
 ## TursoDB
@@ -62,8 +62,7 @@ CREATE TABLE usuarios (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
-  salt TEXT NOT NULL,
-  credencial_hash TEXT NOT NULL,  -- authHashHex PHC canônico: $argon2id$v=19$m=19456,t=3,p=1$... (Argon2id + Pepper HMAC-SHA256, 256 bits, OWASP)
+  credencial_hash TEXT NOT NULL,  -- authHash PHC canônico: $argon2id$v=19$m=19456,t=3,p=1$<salt_b64>$<hash_b64> (salt embutido, Argon2id + Pepper HMAC-SHA256, 256 bits, OWASP — desestimula atacantes offline)
   gemini_key_cifrada TEXT,        -- AES-256-GCM cifrada com vaultKeyHex
   gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',
   criado_em TEXT NOT NULL
@@ -83,6 +82,7 @@ CREATE TABLE ideias (
 
 - `gemini_api_key` + `gemini_modelo` → tabela `configuracoes` (modo legado) **ou** `usuarios.gemini_key_cifrada` + `usuarios.gemini_modelo` (modo autenticado)
 - Ideias → tabela `ideias` com `usuario_id INTEGER NOT NULL REFERENCES usuarios(id)` — quando há sessão ativa, `salvarIdeia`, `listarIdeias`, `excluirIdeia` e `alternarFavorito` filtram isolam por `usuario_id`; modo legado (sem login) não filtra
+- Criptografia E2E de ideias: quando autenticado, `salvarIdeia` cifra `descricao`, `tema` e `promptUsado` com AES-256-GCM (`vaultKeyHex`); `titulo` e `categoria` ficam em texto claro para busca/indexação — `listarIdeias` decifra automaticamente ao ler
 - Categorias: `CATEGORIAS` em `types.ts` define `'App'`, `'Negócio'`, `'Conteúdo'`, `'Open Source'`, `'Hobby'`
 - Histórico: `listarIdeias({ somenteFavoritas, busca, categoria })` — filtra por categoria e/ou busca textual (`LIKE` no SQL); `tela-historico.tsx` oferece organização e filtro por categorias + Somente Favoritas
 

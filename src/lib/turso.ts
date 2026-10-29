@@ -195,7 +195,6 @@ export async function initTurso(): Promise<void> {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           nome TEXT NOT NULL,
           email TEXT UNIQUE NOT NULL,
-          salt TEXT NOT NULL,
           credencial_hash TEXT NOT NULL,
           gemini_key_cifrada TEXT,
           gemini_modelo TEXT NOT NULL DEFAULT 'gemini-2.5-flash',

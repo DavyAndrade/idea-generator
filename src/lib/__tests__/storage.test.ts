@@ -284,11 +284,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -313,11 +313,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '42' }, { type: 'text', value: 'João' }, { type: 'text', value: 'joao@test.com' },
-                 { type: 'text', value: 'somesalt' }, { type: 'text', value: 'somehash' }, { type: 'null' },
+                 { type: 'text', value: 'somehash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -342,7 +342,7 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [],
             },
@@ -364,11 +364,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -415,11 +415,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -478,11 +478,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -517,11 +517,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-pro' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -562,11 +562,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: salt }, { type: 'text', value: authHashHex }, { type: 'null' },
+                 { type: 'text', value: authHashHex }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -587,11 +587,11 @@ describe('storage - sessão e auth', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: 'Teste' }, { type: 'text', value: 't@t.com' },
-                 { type: 'text', value: salt }, { type: 'text', value: authHashHex }, { type: 'null' },
+                 { type: 'text', value: authHashHex }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -601,6 +601,39 @@ describe('storage - sessão e auth', () => {
     ]);
 
     await expect(loginUsuario({ email: 't@t.com', senha: 'senha-errada' })).rejects.toThrow('inválidos');
+  });
+
+  it('loginUsuario com sucesso extrai salt do PHC sem coluna salt', async () => {
+    const { derivarChaves, gerarSaltHex } = await import('@/lib/crypto');
+    const salt = await gerarSaltHex();
+    const { authHashHex, vaultKeyHex } = await derivarChaves('minhaSenha@123', salt);
+
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '7' }, { type: 'text', value: 'Dev' }, { type: 'text', value: 'dev@test.com' },
+                 { type: 'text', value: authHashHex }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const sessao = await loginUsuario({ email: 'dev@test.com', senha: 'minhaSenha@123' });
+    expect(sessao.id).toBe(7);
+    expect(sessao.nome).toBe('Dev');
+    expect(sessao.email).toBe('dev@test.com');
+    expect(sessao.vaultKeyHex).toBe(vaultKeyHex);
+    expect(obterSessaoAtual()?.vaultKeyHex).toBe(vaultKeyHex);
   });
 });
 
@@ -626,11 +659,11 @@ describe('storage - isolamento de ideias por usuario_id', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: nome }, { type: 'text', value: email },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },
@@ -852,11 +885,11 @@ describe('storage - atualizarNomeUsuario + E2E ideias cifradas', () => {
           results: [{
             result: {
               cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
-                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
                      { name: 'gemini_modelo' }, { name: 'criado_em' }],
               rows: [
                 [{ type: 'integer', value: '1' }, { type: 'text', value: nome }, { type: 'text', value: email },
-                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'hash' }, { type: 'null' },
                  { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
               ],
             },

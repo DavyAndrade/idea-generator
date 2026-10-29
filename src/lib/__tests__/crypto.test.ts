@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   gerarSaltHex,
   derivarChaves,
+  extrairSaltDePHC,
   cifrarTexto,
   decifrarTexto,
   constantTimeEquals,
@@ -68,6 +69,19 @@ describe('crypto — Zero-Knowledge Auth + AES-256-GCM vault', () => {
       const { authHashHex, vaultKeyHex } = await derivarChaves(SENHA, salt);
       expect(authHashHex).toMatch(/^\$argon2id\$/);
       expect(vaultKeyHex).toMatch(/^[0-9a-f]{64}$/);
+    });
+  });
+
+  describe('extrairSaltDePHC', () => {
+    it('extrai exatamente o salt original do hash PHC', async () => {
+      const saltOriginal = await gerarSaltHex();
+      const { authHashHex } = await derivarChaves(SENHA, saltOriginal);
+      const saltExtraido = extrairSaltDePHC(authHashHex);
+      expect(saltExtraido).toBe(saltOriginal);
+    });
+
+    it('lança erro para string PHC inválida sem salt', () => {
+      expect(() => extrairSaltDePHC('invalido')).toThrow('PHC inválido: salt não encontrado');
     });
   });
 

@@ -62,6 +62,27 @@ export async function verificarArgon2id(senhaPeppered: Uint8Array, phcHash: stri
   return argon2Verify({ password: senhaPeppered, hash: phcHash });
 }
 
+/// Extrai o salt em hex do formato PHC $argon2id$v=19$m=...$<salt_b64>$<hash_b64>
+/// Decodifica o base64 do 4o campo (sem padding) para hex.
+export function extrairSaltDePHC(phc: string): string {
+  const parts = phc.split("$");
+  // Formato esperado: $argon2id$v=19$m=...,t=...,p=...$<salt_b64>$<hash_b64>
+  // parts[0]="" (vazio antes do primeiro $), parts[1]="argon2id", parts[2]="v=19...", parts[3]=params, parts[4]=salt_b64, parts[5]=hash_b64
+  const saltB64 = parts[4];
+  if (!saltB64) throw new Error("PHC inválido: salt não encontrado");
+  // Normaliza base64url e adiciona padding se necessário
+  const cleanB64 = saltB64.replace(/_/g, "/").replace(/-/g, "+");
+  const padded = cleanB64.padEnd(cleanB64.length + ((4 - (cleanB64.length % 4)) % 4), "=");
+  const b64decoded = atob(padded);
+  const bytes = new Uint8Array(b64decoded.length);
+  for (let i = 0; i < b64decoded.length; i++) {
+    bytes[i] = b64decoded.charCodeAt(i);
+  }
+  return Array.from(bytes)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 /// Deriva hash opaco legado (64 hex chars, sem prefixo PHC) para compat com hashes antigos.
 export async function derivarHashLegado(
   senha: string,

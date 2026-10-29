@@ -36,17 +36,18 @@ O sistema de autenticação é **zero-knowledge**: a senha nunca deixa o cliente
 1. **Registro (`TelaAuth` + `registrarUsuario({ nome, email, senha })`)**:
    - **Política de senha forte** validada em tempo real no cadastro: mínimo de **8 caracteres**, **1 letra maiúscula**, **1 letra minúscula**, **1 número** e **1 caractere especial**.
    - Gera `salt` aleatório (16 bytes hex) via `crypto.getRandomValues`
-   - Deriva `authHashHex` e `vaultKeyHex` via **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256** (512 bits)
-   - `authHashHex` no formato PHC canônico `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP: 19 MiB RAM, 3 iterações, paralelismo 1) → armazenado como `credencial_hash` no banco
+   - Deriva `authHashHex` e `vaultKeyHex` via **Argon2id** (WebAssembly, 19 MiB RAM, 3 iterações, custo zero na Vercel — roda no navegador do usuário) combinado com **Pepper (`VITE_AUTH_PEPPER`) via HMAC-SHA256**
+   - `authHashHex` no formato **PHC canônico** `$argon2id$v=19$m=19456,t=3,p=1$...` (OWASP: 19 MiB RAM, 3 iterações, paralelismo 1 — desestimula atacantes offline) → armazenado como `credencial_hash` no banco
    - `vaultKeyHex` (64 hex chars, 256 bits) → mantida apenas em memória/sessionStorage (nunca persistida)
    - A chave Gemini do usuário é **criptografada com AES-256-GCM** usando `vaultKeyHex` antes de ser salva como `gemini_key_cifrada`
    - **Isolamento de ideias por conta (`usuario_id`)**: todas as ideias salvas, listadas, favoritadas ou excluídas ficam vinculadas exclusivamente ao `usuario_id` da conta logada.
+   - **Criptografia E2E de ideias**: quando autenticado, `descricao`, `tema` e `promptUsado` são cifrados com AES-256-GCM; `titulo` e `categoria` ficam em texto claro para busca.
 
 2. **Login:** `loginUsuario({ email, senha })`:
-   - Busca o `salt` e `credencial_hash` do usuário pelo email
-   - Deriva `authHashHex` localmente com a senha informada
-   - Compara com `constantTimeEquals` (evita timing attacks)
-   - Se válido, carrega `vaultKeyHex` em memória para decifrar a chave Gemini
+   - Busca `credencial_hash` (PHC) do usuário pelo email
+   - Extrai o `salt` diretamente do formato PHC (`extrairSaltDePHC`) e deriva `vaultKeyHex` para decifrar dados
+   - Valida a senha via `verificarArgon2id()` (Argon2id + Pepper HMAC-SHA256)
+   - Se válido, carrega `vaultKeyHex` em memória para decifrar a chave Gemini e as ideias salvas
 
 3. **Chave Gemini:** `lerChave()` / `salvarChave()`:
    - Modo autenticado: chave fica **AES-256-GCM cifrada** com `vaultKeyHex`, armazenada como `gemini_key_cifrada`
@@ -112,6 +113,13 @@ bun run build            # gera dist/
 ```
 
 A PWA é servida como arquivos estáticos (Vercel, Netlify, Cloudflare Pages, etc).
+
+## Edição de Perfil
+
+Na tela de Configurações (`tela-configuracao.tsx`), o usuário autenticado pode:
+- **Atualizar nome**: `atualizarNomeUsuario(novoNome)` — faz trim automático e atualiza o `nome` no banco + sessão local.
+- **Trocar modelo Gemini**: `salvarModelo(modelo)` — persiste em `usuarios.gemini_modelo` (autenticado) ou `configuracoes` (legado).
+- **Salvar/ler chave API**: `salvarChave(chave)` / `lerChave()` — AES-256-GCM cifrada com `vaultKeyHex` quando autenticado.
 
 ## Setup
 
