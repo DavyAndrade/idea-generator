@@ -54,7 +54,7 @@ describe('storage - configurações', () => {
     expect(body.requests[0].stmt.sql).toContain('ON CONFLICT(chave) DO UPDATE');
 
     await lerChave();
-    const selectCall = mock.mock.calls[3];
+    const selectCall = mock.mock.calls[2];
     const selectBody = JSON.parse(selectCall[1].body);
     expect(selectBody.requests[0].stmt.sql).toContain('SELECT valor FROM configuracoes WHERE chave = ?');
     expect(selectBody.requests[0].stmt.args).toEqual([{ type: 'text', value: 'gemini_api_key' }]);
@@ -208,7 +208,7 @@ describe('storage - CRUD de ideias', () => {
 
     const call = (globalThis as any).fetch.mock.calls[1];
     const body = JSON.parse(call[1].body);
-    expect(body.requests[0].stmt.sql).toBe('UPDATE ideia SET favorito = ? WHERE id = ?');
+    expect(body.requests[0].stmt.sql).toBe('UPDATE ideias SET favorito = ? WHERE id = ?');
     expect(body.requests[0].stmt.args).toEqual([{ type: 'integer', value: '1' }, { type: 'integer', value: '1' }]);
   });
 
@@ -226,15 +226,16 @@ describe('storage - CRUD de ideias', () => {
   it('resetInitCache permite re-inicialização', async () => {
     mockFetchSequence([
       { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init 1
+      { response: { results: [{ result: { rows: [[{ type: 'text', value: '' }]], cols: [{ name: 'valor' }] } }] } }, // SELECT 1
       { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init 2
-      { response: { results: [{ result: { rows: [[{ type: 'text', value: '' }]], cols: [{ name: 'valor' }] } }] } }, // SELECT
+      { response: { results: [{ result: { rows: [[{ type: 'text', value: '' }]], cols: [{ name: 'valor' }] } }] } }, // SELECT 2
     ]);
 
     await lerChave();
     resetInitCache();
     await lerChave();
 
-    expect((globalThis as any).fetch.mock.calls.length).toBe(3);
+    expect((globalThis as any).fetch.mock.calls.length).toBe(4);
   });
 
   it('testarConexaoTurso re-exportado funciona', async () => {

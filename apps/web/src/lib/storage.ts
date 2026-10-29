@@ -2,7 +2,7 @@
 // - gemini_api_key e gemini_modelo → tabela configuracoes
 // - ideias → tabela ideias
 import { execute, query, initTurso, rowToIdeia } from '@/lib/turso';
-import type { Ideia, ModeloGemini, NovaIdeiaInput } from '@/types';
+import { MODELO_PADRAO, type Ideia, type ModeloGemini, type NovaIdeiaInput } from '@/types';
 
 // Re-exporta testarConexaoTurso para uso em componentes
 export { testarConexaoTurso } from '@/lib/turso';
@@ -53,8 +53,6 @@ export async function lerModelo(): Promise<ModeloGemini> {
   );
   const stored = rows[0]?.valor;
   if (stored) return stored as ModeloGemini;
-  // Fallback: importa MODELO_PADRAO sem circular dependency
-  const { MODELO_PADRAO } = await import('@/types');
   return MODELO_PADRAO;
 }
 

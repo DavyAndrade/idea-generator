@@ -40,12 +40,17 @@ interface HranaArgs {
   row?: unknown[];
 }
 
-interface HranaResult {
+interface HranaInnerResult {
   rows?: unknown[];
   cols?: Array<{ name: string }>;
   columns?: string[];
   lastInsertRowid?: string | number;
   statistics?: { rowCount?: number };
+}
+
+interface HranaResult extends HranaInnerResult {
+  result?: HranaInnerResult;
+  response?: { result?: HranaInnerResult };
   error?: { code: string; message: string };
 }
 
@@ -113,36 +118,40 @@ function extractValue(cell: unknown): unknown {
 // Suporta formato Hrana v2 (cols: {name}[] + rows: cells[][]) e formato simples (columns: string[] + rows: unknown[][])
 export async function query<T = Record<string, unknown>>(sql: string, args: unknown[] = []): Promise<T[]> {
   const res = await pipeline([{ sql, args }]);
-  const result = res.results[0];
+  const entry = res.results?.[0];
 
-  if (result?.error) {
-    throw new Error(`Turso error: ${result.error.code} — ${result.error.message}`);
+  if (entry?.error) {
+    throw new Error(`Turso error: ${entry.error.code} — ${entry.error.message}`);
   }
 
-  const rows = result?.rows;
+  const inner: HranaInnerResult | undefined =
+    entry?.response?.result ?? entry?.result ?? entry;
+
+  const rows = inner?.rows;
   if (!rows || rows.length === 0) return [];
 
-  // Formato Hrana v2: result.cols é Array<{ name: string }>
-  if (result.cols) {
-    const cols = result.cols as Array<{ name: string }>;
+  // Formato Hrana v2: inner.cols é Array<{ name: string }>
+  if (inner.cols) {
+    const cols = inner.cols as Array<{ name: string }>;
     return rows.map((row) => {
       const r = row as unknown[];
       const obj: Record<string, unknown> = {};
       cols.forEach((col, i) => {
-        obj[col.name] = extractValue(r[i]);
+        const colName = typeof col === 'string' ? col : col.name;
+        obj[colName] = extractValue(r[i]);
       });
       return obj as T;
     });
   }
 
-  // Formato simples: result.columns é string[] e rows são arrays primitivos
-  const columns = result.columns as string[] | undefined;
+  // Formato simples: inner.columns é string[] e rows são arrays primitivos
+  const columns = inner.columns as string[] | undefined;
   if (columns) {
     return rows.map((row) => {
       const r = row as unknown[];
       const obj: Record<string, unknown> = {};
       columns.forEach((col, i) => {
-        obj[col] = r[i];
+        obj[col] = extractValue(r[i]);
       });
       return obj as T;
     });
@@ -153,25 +162,30 @@ export async function query<T = Record<string, unknown>>(sql: string, args: unkn
 
 // Inicialização automática das tabelas
 export async function initTurso(): Promise<void> {
-  await execute(`
-    CREATE TABLE IF NOT EXISTS configuracoes (
-      chave TEXT PRIMARY KEY,
-      valor TEXT NOT NULL
-    )
-  `);
-
-  await execute(`
-    CREATE TABLE IF NOT EXISTS ideias (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      titulo TEXT NOT NULL,
-      descricao TEXT NOT NULL,
-      tema TEXT NOT NULL,
-      categoria TEXT NOT NULL,
-      prompt_usado TEXT,
-      favorito INTEGER NOT NULL DEFAULT 0,
-      criado_em TEXT NOT NULL
-    )
-  `);
+  await pipeline([
+    {
+      sql: `
+        CREATE TABLE IF NOT EXISTS configuracoes (
+          chave TEXT PRIMARY KEY,
+          valor TEXT NOT NULL
+        )
+      `,
+    },
+    {
+      sql: `
+        CREATE TABLE IF NOT EXISTS ideias (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          titulo TEXT NOT NULL,
+          descricao TEXT NOT NULL,
+          tema TEXT NOT NULL,
+          categoria TEXT NOT NULL,
+          prompt_usado TEXT,
+          favorito INTEGER NOT NULL DEFAULT 0,
+          criado_em TEXT NOT NULL
+        )
+      `,
+    },
+  ]);
 }
 
 // Testa conexão com Turso
