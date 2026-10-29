@@ -77,7 +77,7 @@ export async function verifySession(token: string): Promise<{ userId: number; em
     const valid = await crypto.subtle.verify(
       'HMAC',
       key,
-      signature,
+      signature as BufferSource,
       new TextEncoder().encode(dataToSign)
     );
 

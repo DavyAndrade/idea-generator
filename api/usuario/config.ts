@@ -1,4 +1,4 @@
-import { json, errorResponse, authenticateRequest } from '../_lib/http';
+import { json, errorResponse, authenticateRequest, createApiHandler } from '../_lib/http';
 import { query, execute, initTursoServer } from '../_lib/turso';
 
 export async function GET(req: Request): Promise<Response> {
@@ -67,8 +67,10 @@ export async function PATCH(req: Request): Promise<Response> {
   }
 }
 
-export default async function handler(req: Request): Promise<Response> {
+async function handler(req: Request): Promise<Response> {
   if (req.method === 'GET') return GET(req);
   if (req.method === 'PATCH') return PATCH(req);
   return errorResponse('Método não permitido', 405);
 }
+
+export default createApiHandler(handler);

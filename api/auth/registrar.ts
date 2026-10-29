@@ -1,4 +1,4 @@
-import { json, errorResponse } from '../_lib/http';
+import { json, errorResponse, createApiHandler } from '../_lib/http';
 import { query, initTursoServer } from '../_lib/turso';
 import { gerarSaltHex, derivarArgon2idPHC } from '../_lib/crypto';
 import { signSession } from '../_lib/jwt';
@@ -63,7 +63,9 @@ export async function POST(req: Request): Promise<Response> {
   }
 }
 
-export default async function handler(req: Request): Promise<Response> {
+async function handler(req: Request): Promise<Response> {
   if (req.method === 'POST') return POST(req);
   return errorResponse('Método não permitido', 405);
 }
+
+export default createApiHandler(handler);
