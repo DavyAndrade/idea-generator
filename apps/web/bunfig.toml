@@ -1,0 +1,6 @@
+[alias]
+"@" = "./src"
+
+[test]
+environment = "jsdom"
+globals = true

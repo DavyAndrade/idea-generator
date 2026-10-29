@@ -2,81 +2,93 @@
 
 ## Project
 
-Gerador de Ideias — app Flutter Android. Gera ideias via Gemini BYOK.
-Repositório: /home/davy/Desenvolvimento/Projetos/GeradorDeIdeias
+Gerador de Ideias — PWA React que gera ideias criativas via Gemini (BYOK).
+Repositório: `/home/davy/Desenvolvimento/Projetos/GeradorDeIdeias`
 
 ## Commands
 
-- `flutter pub get` — deps
-- `flutter analyze` — lint (deve sair 0 issues antes de commitar)
-- `flutter test` — testes (deve passar antes de commitar)
-- `flutter build apk --debug` — smoke build (requer JDK 17+)
-- `dart format lib test` — formatação
-
-## JDK p/ build do APK
-
-Máquina sem JDK do sistema (sudo pede senha). JDK portátil já baixado em
-`~/jdks/jdk-17.0.21+9`. Antes de `flutter build apk`:
-
-```bash
-export JAVA_HOME=/home/davy/jdks/jdk-17.0.21+9
-export PATH="$JAVA_HOME/bin:$PATH"
-```
-
-Se a pasta não existir, o README tem o comando de download (Adoptium 17, sem sudo).
+- `bun install` — instalar dependências
+- `bun run dev` — iniciar servidor de desenvolvimento (localhost:5173)
+- `bun run build` — build de produção
+- `bun run preview` — preview do build local
+- `bun test` — rodar testes (Vitest)
+- `bun run typecheck` — verificar tipos TypeScript (`tsc --noEmit`)
 
 ## Stack decisions (não mudar sem pedido explícito)
 
-- SQLite via `sqflite` puro — NÃO drift/orm
-- Gemini via REST (`http`) — NÃO SDK google_generative_ai
-- Chave API em `flutter_secure_storage` — NÃO SharedPreferences
-- Estado: `provider` — NÃO riverpod/bloc
-- DI manual no main.dart — NÃO get_it/kiwi
-- Idioma: labels e comentários em pt-BR
-- Sem backend/web service/Mongo — BYOK, app fala direto com API
+- React 19 + TypeScript + Vite
+- Tailwind CSS v4 + shadcn/ui
+- PWA (Service Worker cache-first para shell + manifest.webmanifest)
+- TursoDB via HTTP Pipeline v2 (Hrana v2) — **não** `@libsql/client`
+- Gemini REST direto (`gemini-2.5-flash`) — **não** SDK oficial
+- Bun como runtime e gerenciador de pacotes
+- Estado: React hooks (`useState` / `useEffect`) — **não** Redux/Zustand
+- DI: funções puras em `lib/storage.ts` e `lib/gemini.ts` — **não** context providers complexos
 
-## Architecture
+## Arquitetura
 
-Clean Architecture, dependências apontam só para dentro (domain não importa data/presentation):
+```
+apps/web/src/
+  lib/            # Integração: turso.ts, gemini.ts, storage.ts, utils.ts
+  components/     # Telas e widgets reusáveis
+  components/ui/  # Componentes shadcn/ui
+  types.ts        # Entidade Ideia, tipos e constantes
+  App.tsx         # Shell com navegação por abas (Gerar / Histórico / Config)
+```
 
-- domain/: entidade pura `Ideia`, interface `IdeiaRepository`, casos de uso (1 classe = 1 ação)
-- data/: `IdeiaModel extends Ideia`, `IdeiaLocalDataSource` (sqflite), `GeminiDataSource` (REST + responseSchema JSON), `IdeiaRepositoryImpl`
-- presentation/: `IdeiaProvider extends ChangeNotifier`, telas, widgets
-- core/: `Resultado<T>` (Success/Failure), exceções tipadas
+**Fluxo:** tela → `lib/storage.ts` (CRUD via Turso HTTP Pipeline) → API externa (Gemini REST).
+Regra: tela nunca faz chamada HTTP direta — sempre via `lib/storage.ts` ou `lib/gemini.ts`.
 
-Regra: tela nunca fala com datasource direto — sempre via caso de uso.
-Caso de uso retorna `Resultado<T>`, nunca lança exceção.
+## TursoDB
+
+Tabelas (criadas automaticamente por `initTurso()`):
+
+```sql
+CREATE TABLE configuracoes (
+  chave TEXT PRIMARY KEY,
+  valor TEXT NOT NULL
+);
+CREATE TABLE ideias (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  titulo TEXT NOT NULL,
+  descricao TEXT NOT NULL,
+  tema TEXT NOT NULL,
+  categoria TEXT NOT NULL,
+  prompt_usado TEXT,
+  favorito INTEGER NOT NULL DEFAULT 0,
+  criado_em TEXT NOT NULL
+);
+```
+
+- `gemini_api_key` e `gemini_modelo` → tabela `configuracoes`
+- Ideias → tabela `ideias`
+- Busca: `listarIdeias({ somenteFavoritas, busca })` com `LIKE` no SQL
 
 ## Gemini integration
 
 - Endpoint: `https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent`
 - Auth: header `x-goog-api-key`
-- Sempre pedir `generationConfig.responseMimeType: application/json` + `responseSchema` com campos {titulo, descricao, categoria} — sem parse de texto livre
-- Modelo padrão: `gemini-2.5-flash`; usuário pode trocar nas configurações
+- `responseMimeType: application/json` + `responseSchema` com `titulo`, `descricao`, `categoria`
+- Modelo padrão: `gemini-2.5-flash`; usuário troca nas configurações
 - Sem chave configurada → UI mostra banner, não tenta chamar API
 
-## SQLite
+## Variáveis de ambiente
 
-Tabela `ideias`:
-
+```env
+VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
+VITE_TURSO_AUTH_TOKEN=SEU_TOKEN
 ```
-id INTEGER PK AUTOINCREMENT, titulo TEXT, descricao TEXT, tema TEXT,
-categoria TEXT, prompt_usado TEXT, favorito INTEGER DEFAULT 0, criado_em TEXT
-```
-
-Migração: bump `databaseVersion` + switch em onCreate/onUpgrade.
 
 ## Testing
 
-- Unit: casos de uso + GeminiDataSource (mock HTTP via http.testing)
-- Unit: IdeiaRepositoryImpl com sqflite_common_ffi (SQLite real em memória)
-- Widget: tela de gerar com provider mockado
-- Rodar: `flutter test`
+- Unit: `lib/gemini.ts`, `lib/turso.ts`, `lib/storage.ts`, `lib/utils.ts` (Vitest)
+- Component: telas com React Testing Library
+- Rodar: `bun test`
 
 ## Conventions
 
-- Arquivos em snake_case; classes em PascalCase
-- Um caso de uso por arquivo
-- Erros: exceções tipadas em core/, convertidas em Resultado nos casos de uso
-- Nada de comentário de código explicando o óbvio (comentário `ponytail:` ok p/ atalho deliberado)
-- Commit: Conventional Commits, pt-BR, ex: `feat: tela de gerar ideias`
+- Arquivos em kebab-case; componentes em PascalCase
+- Componentes shadcn/ui em `components/ui/`
+- Labels e comentários em pt-BR
+- Sem backend próprio — app fala direto com API externa (Gemini + Turso)
+- Commit: Conventional Commits em pt-BR, ex: `feat: tela de histórico com busca`

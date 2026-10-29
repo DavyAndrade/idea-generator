@@ -1,0 +1,17 @@
+{
+  "name": "Gerador de Ideias",
+  "short_name": "Ideias",
+  "description": "Gere ideias criativas usando o Gemini com sua própria chave de API.",
+  "start_url": "/",
+  "display": "standalone",
+  "lang": "pt-BR",
+  "theme_color": "#6d28d9",
+  "background_color": "#09090b",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ]
+}

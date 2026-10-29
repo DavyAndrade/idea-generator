@@ -14,7 +14,7 @@ migrate_working_dir/
 
 # IntelliJ related
 *.iml
-*.ipr
+*.iwr
 *.iws
 .idea/
 
@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Web / Node / Bun / Vite
+node_modules/
+dist/
+.env
+.env.local
+.maestri/
+graphify-out/
+
+# Bun
+bun.lockb

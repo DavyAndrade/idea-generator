@@ -1,74 +1,80 @@
 # Gerador de Ideias
 
-App Android (Flutter) que gera ideias criativas usando Gemini com BYOK:
-o usuário informa a própria chave de API do Google AI Studio.
+App PWA (Progressive Web App) que gera ideias criativas usando **Gemini** com
+**BYOK** (Bring Your Own Key): o usuário informa a própria chave de API do
+Google AI Studio.
 
 ## Stack
 
-- Flutter 3.44.x / Dart 3.12.x — foco Android
-- SQLite via `sqflite` (histórico local de ideias)
-- `flutter_secure_storage` — chave API no Keystore
-- Gemini REST direto (`gemini-2.5-flash`), sem SDK oficial
-- `provider` + `ChangeNotifier` — estado
+- **React 19** + **TypeScript** + **Vite** (build e dev server)
+- **Tailwind CSS v4** + **shadcn/ui** (design system)
+- **PWA** — Service Worker (cache-first para shell, network-first para navegação) + `manifest.webmanifest`
+- **Bun** — runtime e gerenciador de pacotes
+- **TursoDB** (HTTP Pipeline v2 / Hrana v2) — persistência de chave API, modelo e ideias
+- **Gemini REST** direto (`gemini-2.5-flash`), sem SDK oficial
 
 ## Arquitetura
 
-Clean Architecture em 3 camadas:
-
 ```
-lib/
-  core/          # Resultado<T>, exceções, constantes
-  domain/        # entidade Ideia, interface IdeiaRepository, casos de uso
-  data/          # models, datasources (SQLite + Gemini), repo impl
-  presentation/  # providers, telas, widgets
+apps/web/
+  src/
+    lib/            # Integração: turso.ts (HTTP Pipeline v2), gemini.ts (REST), storage.ts (CRUD), utils.ts
+    components/     # TelaGerar, TelaHistorico, TelaConfiguracao, AppBar, BannerSemChave, IdeiaCard
+    components/ui/  # shadcn/ui (Badge, Button, Card, Input)
+    types.ts        # Ideia, Categoria, ModeloGemini, constantes
+    App.tsx         # Shell com navegação por abas
+    main.tsx        # Entry point React 19
+  public/           # manifest.webmanifest, sw.js, icon.svg
 ```
 
-Fluxo: tela → caso de uso → repositório (interface) → datasource.
+**Fluxo:** tela → `lib/storage.ts` (CRUD local via Turso) → API externa (Gemini REST).
+Não há backend próprio — o app fala direto com Gemini e Turso.
 
-## Funcionalidades (MVP)
+## Variáveis de ambiente
 
-1. **Gerar ideia** — tema livre + categoria (App, Negócio, Conteúdo, Open Source, Hobby)
-2. **Histórico** — ideias salvas, favoritos, busca, excluir
-3. **Configuração** — chave API (obscured), teste de conexão, modelo
+Crie `.env.local` em `apps/web/`:
 
-## Regras
+```env
+VITE_TURSO_DATABASE_URL=libsql://SEU-BANCO.turso.io
+VITE_TURSO_AUTH_TOKEN=SEU_TOKEN_DE_LEITURA/GRAVACAO
+```
 
-- Sem backend: app fala direto com Gemini (BYOK)
-- Sem ORM: sqflite com SQL explícito
-- Sem get_it: DI manual em main.dart
-- Labels em pt-BR
+- `VITE_TURSO_DATABASE_URL` — URL do banco Turso (formato `libsql://...`)
+- `VITE_TURSO_AUTH_TOKEN` — token de acesso (Pipeline v2 = escopo `read`, `write`)
 
-## Commands
+## Comandos
 
 ```bash
-flutter pub get
-flutter analyze
-flutter test
-flutter run
-flutter build apk --debug
+bun install              # instalar deps (na raiz ou apps/web)
+bun run dev              # iniciar servidor de desenvolvimento (localhost:5173)
+bun run build            # build de produção → apps/web/dist
+bun run preview          # preview do build local
+bun test                 # rodar testes (Vitest)
+bun run typecheck        # verificar tipos TypeScript
 ```
 
-## Build do APK (requer JDK)
+## CI/CD
 
-`flutter build apk` precisa de um JDK 17+. Se não houver um instalado no sistema:
+GitHub Actions em `.github/workflows/ci.yml` (`main` branch):
+
+1. Checkout
+2. Install Bun + deps
+3. `tsc --noEmit` (type-safe)
+4. `vitest` (testes)
+5. `vite build` (build PWA)
+6. Upload de `apps/web/dist` como artifact
+
+## Build
 
 ```bash
-# baixa Adoptium Temurin 17 portátil (~190MB) sem sudo
-mkdir -p ~/jdks && cd ~/jdks
-curl -fsSL -o jdk17.tar.gz \
-  "https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
-tar xzf jdk17.tar.gz && rm jdk17.tar.gz   # extrai p/ jdk-17.0.21+9/
-
-export JAVA_HOME="$HOME/jdks/jdk-17.0.21+9"
-export PATH="$JAVA_HOME/bin:$PATH"
-flutter build apk --debug
+bun run build            # gera apps/web/dist/
 ```
 
-APK sai em `build/app/outputs/flutter-apk/app-debug.apk`.
+A PWA é servida como arquivos estáticos (Vercel, Netlify, Cloudflare Pages, etc).
 
 ## Setup
 
-1. `flutter pub get`
-2. Rode no emulador/dispositivo: `flutter run`
-3. Abra Configuração e cole sua chave do Google AI Studio
-   (https://aistudio.google.com/apikey)
+1. `bun install`
+2. Configure `.env.local` com suas credenciais do Turso
+3. Crie uma chave no [Google AI Studio](https://aistudio.google.com/apikey)
+4. Rode `bun run dev`

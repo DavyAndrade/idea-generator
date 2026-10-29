@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instalar Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Instalar dependências
+        run: bun --cwd apps/web install
+
+      - name: Type check (TypeScript)
+        run: bun --cwd apps/web x tsc --noEmit
+
+      - name: Rodar testes
+        run: bun --cwd apps/web test
+
+      - name: Build da PWA
+        run: bun --cwd apps/web run build
+
+      - name: Upload de artefato (dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwa-dist
+          path: apps/web/dist

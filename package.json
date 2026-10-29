@@ -1,0 +1,16 @@
+{
+  "name": "gerador-de-ideias",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gerador de ideias criativas via Gemini (BYOK) — PWA React 19 + TursoDB",
+  "scripts": {
+    "dev": "bun --cwd apps/web run dev",
+    "build": "bun --cwd apps/web run build",
+    "preview": "bun --cwd apps/web run preview",
+    "test": "bun --cwd apps/web test",
+    "typecheck": "bun --cwd apps/web x tsc --noEmit"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
