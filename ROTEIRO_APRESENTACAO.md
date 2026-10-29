@@ -210,7 +210,7 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 
 ### Slide 10: Conclusão & Demonstração Prática
 - **Tempo estimado:** 1m 30s  
-- **Elemento visual:** Diferenciais do projeto e os 4 passos da demonstração ao vivo.
+- **Elemento visual:** Diferenciais do projeto, 4 passos da demonstração ao vivo e **QR Code interativo com link direto para o PWA em produção na Vercel (`https://lumi-gen.vercel.app/`)**.
 
 #### 🗣️ O que falar:
 > "Em conclusão, o Lumi atinge plenamente todos os objetivos propostos:
@@ -220,7 +220,9 @@ Guia oral e roteiro técnico estruturado para a defesa acadêmica do projeto **L
 > - Implementa **desenvolvimento avançado de IA** com engenharia de prompts e Structured Outputs JSON;
 > - E eleva o padrão de **privacidade** com segurança Zero-Knowledge e custo zero de infraestrutura de inferência.
 >
-> Gostaria agora de convidá-los para uma breve demonstração prática no navegador, onde veremos o cadastro, a configuração da chave Gemini, a geração de uma nova ideia em tempo real e a inspeção dos dados criptografados salvos no banco.
+> Vocês podem apontar a câmera do celular para o **QR Code exibido no slide** para abrir a aplicação em produção agora mesmo nos seus smartphones e acompanhar a demonstração em tempo real.
+>
+> Gostaria agora de conduzir uma breve demonstração prática no navegador, onde veremos o cadastro, a configuração da chave Gemini, a geração de uma nova ideia em tempo real e a inspeção dos dados criptografados salvos no banco.
 >
 > Muito obrigado pela atenção de todos e estou aberto às considerações da banca."
 
