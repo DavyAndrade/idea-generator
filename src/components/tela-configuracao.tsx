@@ -1,31 +1,40 @@
 import { useEffect, useState } from "react";
-import { Eye, EyeOff, Link } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import {
   lerChave,
   salvarChave,
   lerModelo,
   salvarModelo,
-} from "../lib/storage";
-import { testarConexaoTurso } from "../lib/turso";
-import { testarConexaoGemini } from "../lib/gemini";
-import { MODELO_PADRAO, MODELOS_DISPONIVEIS } from "../types";
-import type { ModeloGemini } from "../types";
+  atualizarNomeUsuario,
+} from "@/lib/storage";
+import { obterSessaoAtual } from "@/lib/storage";
+import { testarConexaoGemini } from "@/lib/gemini";
+import { MODELO_PADRAO, MODELOS_DISPONIVEIS } from "@/types";
+import type { ModeloGemini } from "@/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 
 interface TelaConfiguracaoProps {
   onSalvo?: () => void;
+  onPerfilAtualizado?: () => void;
 }
 
-export function TelaConfiguracao({ onSalvo }: TelaConfiguracaoProps) {
+export function TelaConfiguracao({ onSalvo, onPerfilAtualizado }: TelaConfiguracaoProps) {
   const [chave, setChave] = useState("");
   const [mostrarChave, setMostrarChave] = useState(false);
   const [modelo, setModelo] = useState<ModeloGemini>(MODELO_PADRAO);
   const [salvando, setSalvando] = useState(false);
   const [testandoGemini, setTestandoGemini] = useState(false);
-  const [testandoTurso, setTestandoTurso] = useState(false);
   const [status, setStatus] = useState<
+    { tipo: "ok" | "erro"; msg: string } | undefined
+  >();
+
+  // Perfil do usuário
+  const sessao = obterSessaoAtual();
+  const [nomePerfil, setNomePerfil] = useState(sessao?.nome ?? "");
+  const [salvandoPerfil, setSalvandoPerfil] = useState(false);
+  const [statusPerfil, setStatusPerfil] = useState<
     { tipo: "ok" | "erro"; msg: string } | undefined
   >();
 
@@ -37,6 +46,9 @@ export function TelaConfiguracao({ onSalvo }: TelaConfiguracaoProps) {
       setChave(c || "");
       setModelo(m || MODELO_PADRAO);
     });
+
+    const s = obterSessaoAtual();
+    if (s) setNomePerfil(s.nome);
   }, []);
 
   const salvar = async () => {
@@ -77,24 +89,65 @@ export function TelaConfiguracao({ onSalvo }: TelaConfiguracaoProps) {
     }
   };
 
-  const testarTurso = async () => {
-    setTestandoTurso(true);
-    setStatus(undefined);
+  const salvarPerfil = async () => {
+    if (!nomePerfil.trim()) {
+      setStatusPerfil({ tipo: "erro", msg: "Digite um nome válido." });
+      return;
+    }
+    setSalvandoPerfil(true);
+    setStatusPerfil(undefined);
     try {
-      const r = await testarConexaoTurso();
-      setStatus({ tipo: r.ok ? "ok" : "erro", msg: r.mensagem });
+      await atualizarNomeUsuario(nomePerfil.trim());
+      setStatusPerfil({ tipo: "ok", msg: "Nome atualizado." });
+      onPerfilAtualizado?.();
     } catch (e: unknown) {
-      setStatus({
+      setStatusPerfil({
         tipo: "erro",
         msg: e instanceof Error ? e.message : String(e),
       });
     } finally {
-      setTestandoTurso(false);
+      setSalvandoPerfil(false);
     }
   };
 
   return (
     <div className="flex-1 space-y-4 overflow-y-auto p-4">
+      {/* Perfil do Usuário */}
+      {sessao && (
+        <div className="rounded-lg border p-4">
+          <h3 className="text-sm font-semibold mb-3">Perfil do Usuário</h3>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Nome</label>
+            <Input
+              type="text"
+              placeholder="Seu nome"
+              value={nomePerfil}
+              onChange={(e) => setNomePerfil(e.target.value)}
+              disabled={salvandoPerfil}
+            />
+            <Button
+              className="w-full"
+              disabled={salvandoPerfil || !nomePerfil.trim()}
+              onClick={salvarPerfil}
+            >
+              {salvandoPerfil ? "Salvando..." : "Salvar perfil"}
+            </Button>
+          </div>
+          {statusPerfil && (
+            <p
+              className={
+                "mt-2 text-sm" +
+                (statusPerfil.tipo === "erro"
+                  ? " text-destructive"
+                  : " text-green-600")
+              }
+            >
+              {statusPerfil.msg}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
         <label className="text-sm font-medium">Chave de API do Gemini</label>
         <div className="relative">
@@ -132,14 +185,6 @@ export function TelaConfiguracao({ onSalvo }: TelaConfiguracaoProps) {
         >
           {testandoGemini ? "Testando..." : "Testar Gemini"}
         </Button>
-        <Button
-          variant="outline"
-          className="flex-1"
-          disabled={testandoTurso}
-          onClick={testarTurso}
-        >
-          {testandoTurso ? "Testando..." : "Testar TursoDB"}
-        </Button>
       </div>
 
       <div className="space-y-2">
@@ -173,17 +218,6 @@ export function TelaConfiguracao({ onSalvo }: TelaConfiguracaoProps) {
           {status.msg}
         </p>
       )}
-
-      <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-        <p className="font-medium mb-1">Variáveis de ambiente do TursoDB:</p>
-        <code>VITE_TURSO_DATABASE_URL</code>
-        <code className="ml-2">VITE_TURSO_AUTH_TOKEN</code>
-      </div>
-
-      <div className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-        <p className="font-medium mb-1">Segurança da chave de API:</p>
-        <p>A chave de API do Gemini é criptografada de ponta a ponta (AES-256-GCM) com a senha da sua conta antes de ser salva no TursoDB. Sua senha nunca deixa este dispositivo em texto claro.</p>
-      </div>
     </div>
   );
 }

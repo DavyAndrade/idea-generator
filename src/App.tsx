@@ -92,7 +92,10 @@ export function App() {
             <TelaHistorico recarregarTrigger={recarregarHistorico} />
           )}
           {aba === 2 && (
-            <TelaConfiguracao onSalvo={sincronizarConfig} />
+            <TelaConfiguracao
+              onSalvo={sincronizarConfig}
+              onPerfilAtualizado={() => setSessao(obterSessaoAtual())}
+            />
           )}
         </main>
 

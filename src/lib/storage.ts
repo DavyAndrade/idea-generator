@@ -18,6 +18,16 @@ import { MODELO_PADRAO, type Ideia, type ModeloGemini, type NovaIdeiaInput, type
 // Re-exporta testarConexaoTurso para uso em componentes
 export { testarConexaoTurso } from '@/lib/turso';
 
+/// Decifra um campo que pode ser ciphertext (hex) ou texto plano (fallback).
+async function decifrarCampo(campoHex: string, vaultKeyHex: string): Promise<string> {
+  try {
+    return await decifrarTexto(campoHex, vaultKeyHex);
+  } catch {
+    // Fallback: campo nao esta cifrado (texto plano ou legado)
+    return campoHex;
+  }
+}
+
 // Garante tabelas existam antes de qualquer operação
 let initPromise: Promise<void> | null = null;
 function ensureInit(): Promise<void> {
@@ -76,6 +86,30 @@ export function obterSessaoAtual(): UsuarioSessao | null {
 
 export function encerrarSessao(): void {
   salvarSessaoStorage(null);
+}
+
+/// Atualiza o nome do usuário autenticado e retorna a nova sessão.
+export async function atualizarNomeUsuario(novoNome: string): Promise<UsuarioSessao> {
+  await ensureInit();
+
+  const sessao = obterSessaoAtual();
+  if (!sessao) {
+    throw new Error('Usuário não autenticado');
+  }
+
+  const nomeTrimmed = novoNome.trim();
+  if (nomeTrimmed.length === 0) {
+    throw new Error('Nome não pode ser vazio');
+  }
+
+  await execute(
+    'UPDATE usuarios SET nome = ? WHERE id = ?',
+    [nomeTrimmed, sessao.id],
+  );
+
+  const novaSessao: UsuarioSessao = { ...sessao, nome: nomeTrimmed };
+  salvarSessaoStorage(novaSessao);
+  return novaSessao;
 }
 
 // --- Registro/Login de usuário ---
@@ -281,12 +315,7 @@ export async function listarIdeias(opcoes?: {
     conditions.push('favorito = 1');
   }
 
-  if (opcoes?.busca) {
-    conditions.push('(titulo LIKE ? OR descricao LIKE ? OR tema LIKE ?)');
-    const termo = `%${opcoes.busca}%`;
-    args.push(termo, termo, termo);
-  }
-
+  // Busca textual aplicada em memória após decifrar (ciphertext nao e indexavel)
   let sql = 'SELECT * FROM ideias';
   if (conditions.length > 0) {
     sql += ' WHERE ' + conditions.join(' AND ');
@@ -294,7 +323,32 @@ export async function listarIdeias(opcoes?: {
   sql += ' ORDER BY criado_em DESC';
 
   const rows = await query<Record<string, unknown>>(sql, args);
-  return rows.map(rowToIdeia);
+
+  const ideias = rows.map((row) => rowToIdeia(row));
+
+  if (sessao) {
+    // Decifra apenas descricao, tema e promptUsado (titulo fica texto claro)
+    for (const ideia of ideias) {
+      ideia.descricao = await decifrarCampo(ideia.descricao, sessao.vaultKeyHex);
+      ideia.tema = await decifrarCampo(ideia.tema, sessao.vaultKeyHex);
+      if (ideia.promptUsado) {
+        ideia.promptUsado = await decifrarCampo(ideia.promptUsado, sessao.vaultKeyHex);
+      }
+    }
+  }
+
+  // Busca texto em memória (lowercase)
+  if (opcoes?.busca && ideias.length > 0) {
+    const termo = opcoes.busca.toLowerCase();
+    return ideias.filter(
+      (ideia) =>
+        ideia.titulo.toLowerCase().includes(termo) ||
+        ideia.descricao.toLowerCase().includes(termo) ||
+        ideia.tema.toLowerCase().includes(termo),
+    );
+  }
+
+  return ideias;
 }
 
 export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
@@ -304,17 +358,25 @@ export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
   const criadoEm = ideia.criadoEm ?? new Date().toISOString();
   const favorito = ideia.favorito ? 1 : 0;
 
+  // Criptografa apenas descricao, tema e promptUsado (titulo fica em texto claro)
+  const tituloBD = ideia.titulo;
+  const descricaoBD = sessao ? await cifrarTexto(ideia.descricao, sessao.vaultKeyHex) : ideia.descricao;
+  const temaBD = sessao ? await cifrarTexto(ideia.tema, sessao.vaultKeyHex) : ideia.tema;
+  const promptBD = sessao && ideia.promptUsado
+    ? await cifrarTexto(ideia.promptUsado, sessao.vaultKeyHex)
+    : ideia.promptUsado ?? null;
+
   // RETURNING * — last_insert_rowid() em HTTP stateless pode falhar entre chamadas
   const rows = await query<Record<string, unknown>>(
     `INSERT INTO ideias (titulo, descricao, tema, categoria, prompt_usado, favorito, criado_em${sessao ? ', usuario_id' : ''})
      VALUES (?, ?, ?, ?, ?, ?, ?${sessao ? ', ?' : ''})
      RETURNING *`,
     [
-      ideia.titulo,
-      ideia.descricao,
-      ideia.tema,
+      tituloBD,
+      descricaoBD,
+      temaBD,
       ideia.categoria,
-      ideia.promptUsado ?? null,
+      promptBD,
       favorito,
       criadoEm,
       ...(sessao ? [sessao.id] : []),
@@ -325,7 +387,16 @@ export async function salvarIdeia(ideia: NovaIdeiaInput): Promise<Ideia> {
     throw new Error('Falha ao recuperar ideia salva');
   }
 
-  return rowToIdeia(rows[0]);
+  const salva = rowToIdeia(rows[0]);
+  if (sessao) {
+    // Decifra apenas descricao, tema e promptUsado (titulo fica texto claro)
+    salva.descricao = await decifrarCampo(salva.descricao, sessao.vaultKeyHex);
+    salva.tema = await decifrarCampo(salva.tema, sessao.vaultKeyHex);
+    if (salva.promptUsado) {
+      salva.promptUsado = await decifrarCampo(salva.promptUsado, sessao.vaultKeyHex);
+    }
+  }
+  return salva;
 }
 
 export async function excluirIdeia(id: number): Promise<void> {
@@ -357,7 +428,14 @@ export async function alternarFavorito(id: number, favoritoAtual?: boolean): Pro
     );
 
     if (rows.length === 0) return undefined;
-    return rowToIdeia(rows[0]);
+    const atualizada = rowToIdeia(rows[0]);
+    // Decifra apenas descricao, tema e promptUsado (titulo fica texto claro)
+    atualizada.descricao = await decifrarCampo(atualizada.descricao, sessao.vaultKeyHex);
+    atualizada.tema = await decifrarCampo(atualizada.tema, sessao.vaultKeyHex);
+    if (atualizada.promptUsado) {
+      atualizada.promptUsado = await decifrarCampo(atualizada.promptUsado, sessao.vaultKeyHex);
+    }
+    return atualizada;
   }
 
   await execute(

@@ -9,6 +9,7 @@ import {
   salvarIdeia,
   excluirIdeia,
   alternarFavorito,
+  atualizarNomeUsuario,
   resetInitCache,
   testarConexaoTurso,
   registrarUsuario,
@@ -149,7 +150,7 @@ describe('storage - CRUD de ideias', () => {
     expect(body.requests[0].stmt.sql).toContain('RETURNING *');
   });
 
-  it('listarIdeias com busca e filtro de favoritas', async () => {
+  it('listarIdeias com busca e filtro de favoritas (busca em memória)', async () => {
     const mock = mockFetchSequence([
       { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
       {
@@ -173,8 +174,9 @@ describe('storage - CRUD de ideias', () => {
     const sql = body.requests[0].stmt.sql;
     expect(sql).toContain('WHERE');
     expect(sql).toContain('favorito = 1');
-    expect(sql).toContain('LIKE ?');
     expect(sql).toContain('ORDER BY criado_em DESC');
+    // Busca agora é feita em memória (após decifrar), não via LIKE no SQL
+    expect(sql).not.toContain('LIKE ?');
   });
 
   it('excluirIdeia envia DELETE', async () => {
@@ -824,6 +826,192 @@ describe('storage - isolamento de ideias por usuario_id', () => {
     await salvarIdeia({ titulo: 'Teste', descricao: 'Desc', tema: 'Tecnologia', categoria: 'App' });
 
     const body = JSON.parse(mock.mock.calls[1][1].body);
+    const sql = body.requests[0].stmt.sql;
+    expect(sql).not.toContain('usuario_id');
+  });
+});
+
+// --- atualizarNomeUsuario + criptografia E2E de ideias ---
+
+describe('storage - atualizarNomeUsuario + E2E ideias cifradas', () => {
+  beforeEach(() => {
+    resetInitCache();
+    encerrarSessao();
+  });
+
+  afterEach(() => {
+    encerrarSessao();
+    vi.restoreAllMocks();
+  });
+
+  async function registrarUsuarioMockado(nome: string, email: string, senha: string): Promise<ReturnType<typeof obterSessaoAtual>> {
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [{ name: 'id' }, { name: 'nome' }, { name: 'email' },
+                     { name: 'salt' }, { name: 'credencial_hash' }, { name: 'gemini_key_cifrada' },
+                     { name: 'gemini_modelo' }, { name: 'criado_em' }],
+              rows: [
+                [{ type: 'integer', value: '1' }, { type: 'text', value: nome }, { type: 'text', value: email },
+                 { type: 'text', value: 'salt' }, { type: 'text', value: 'hash' }, { type: 'null' },
+                 { type: 'text', value: 'gemini-2.5-flash' }, { type: 'text', value: '2025-01-01' }],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+    await registrarUsuario({ nome, email, senha });
+    return obterSessaoAtual()!;
+  }
+
+  it('atualizarNomeUsuario atualiza nome no DB e retorna nova sessao', async () => {
+    await registrarUsuarioMockado('Nome Antigo', 't@t.com', 'senha123');
+
+    const mock = mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // UPDATE
+    ]);
+
+    const sessao = await atualizarNomeUsuario('Nome Novo');
+    expect(sessao).not.toBeNull();
+    expect(sessao!.nome).toBe('Nome Novo');
+    expect(obterSessaoAtual()?.nome).toBe('Nome Novo');
+
+    const body = JSON.parse(mock.mock.calls[0][1].body);
+    expect(body.requests[0].stmt.sql).toBe('UPDATE usuarios SET nome = ? WHERE id = ?');
+    expect(body.requests[0].stmt.args).toEqual([
+      { type: 'text', value: 'Nome Novo' },
+      { type: 'integer', value: '1' },
+    ]);
+  });
+
+  it('atualizarNomeUsuario lança erro quando não logado', async () => {
+    resetInitCache();
+    mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+    ]);
+    await expect(atualizarNomeUsuario('Nome')).rejects.toThrow('Usuário não autenticado');
+  });
+
+  it('atualizarNomeUsuario faz trim do nome', async () => {
+    await registrarUsuarioMockado('Teste', 't@t.com', 'senha123');
+
+    const mock = mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // UPDATE
+    ]);
+
+    await atualizarNomeUsuario('  Nome com Espacos  ');
+
+    const body = JSON.parse(mock.mock.calls[0][1].body);
+    expect(body.requests[0].stmt.args[0]).toEqual({ type: 'text', value: 'Nome com Espacos' });
+  });
+
+  it('salvarIdeia cifra descricao/tema quando logado (titulo em texto claro)', async () => {
+    await registrarUsuarioMockado('Teste', 't@t.com', 'senha123');
+
+    const mock = mockFetchSequence([
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [
+                { name: 'id' }, { name: 'titulo' }, { name: 'descricao' },
+                { name: 'tema' }, { name: 'categoria' }, { name: 'prompt_usado' },
+                { name: 'favorito' }, { name: 'criado_em' }, { name: 'usuario_id' },
+              ],
+              rows: [
+                [
+                  { type: 'integer', value: '1' }, { type: 'text', value: 'Titulo Original' }, { type: 'text', value: 'CIPHERTEXT_DESC' },
+                  { type: 'text', value: 'CIPHERTEXT_TEMA' }, { type: 'text', value: 'App' }, { type: 'null' },
+                  { type: 'integer', value: '0' }, { type: 'text', value: '2025-01-01' }, { type: 'integer', value: '1' },
+                ],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const result = await salvarIdeia({ titulo: 'Titulo Original', descricao: 'Desc Original', tema: 'Tecnologia', categoria: 'App' });
+    expect(result.id).toBe(1);
+
+    const body = JSON.parse(mock.mock.calls[0][1].body);
+    const args = body.requests[0].stmt.args;
+    // titulo (args[0]) é texto claro; descricao (args[1]) e tema (args[2]) são ciphertext
+    expect(args[0].value).toBe('Titulo Original');
+    expect(args[1].value).not.toBe('Desc Original');
+    expect(args[2].value).not.toBe('Tecnologia');
+    // Ciphertext deve ter mais caracteres que o plaintext
+    expect(args[1].value.length).toBeGreaterThan('Desc Original'.length);
+    expect(args[2].value.length).toBeGreaterThan('Tecnologia'.length);
+    // usuario_id deve estar presente
+    const sql = body.requests[0].stmt.sql;
+    expect(sql).toContain('usuario_id');
+  });
+
+  it('listarIdeias decifra descricao/tema quando logado', async () => {
+    await registrarUsuarioMockado('Teste', 't@t.com', 'senha123');
+
+    const { cifrarTexto } = await import('@/lib/crypto');
+    const descCifrado = await cifrarTexto('Descricao Cifrada', obterSessaoAtual()!.vaultKeyHex);
+    const temaCifrado = await cifrarTexto('Tema Cifrado', obterSessaoAtual()!.vaultKeyHex);
+
+    mockFetchSequence([
+      {
+        response: {
+          results: [{
+            result: {
+              cols: ['id', 'titulo', 'descricao', 'tema', 'categoria', 'prompt_usado', 'favorito', 'criado_em', 'usuario_id'],
+              rows: [[1, 'Titulo Plano', descCifrado, temaCifrado, 'App', null, 0, '2025-01-01', 1]],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const ideias = await listarIdeias();
+    expect(ideias).toHaveLength(1);
+    expect(ideias[0].titulo).toBe('Titulo Plano');
+    expect(ideias[0].descricao).toBe('Descricao Cifrada');
+    expect(ideias[0].tema).toBe('Tema Cifrado');
+    expect(ideias[0].categoria).toBe('App');
+  });
+
+  it('salvarIdeia NÃO cifra campos quando não logado', async () => {
+    const mock = mockFetchSequence([
+      { response: { results: [{ result: { rows: [], cols: [] } }] } }, // init
+      {
+        response: {
+          results: [{
+            result: {
+              cols: [
+                { name: 'id' }, { name: 'titulo' }, { name: 'descricao' },
+                { name: 'tema' }, { name: 'categoria' }, { name: 'prompt_usado' },
+                { name: 'favorito' }, { name: 'criado_em' },
+              ],
+              rows: [
+                [
+                  { type: 'integer', value: '1' }, { type: 'text', value: 'Titulo Plano' }, { type: 'text', value: 'Desc Plano' },
+                  { type: 'text', value: 'Tecnologia' }, { type: 'text', value: 'App' }, { type: 'null' },
+                  { type: 'integer', value: '0' }, { type: 'text', value: '2025-01-01' },
+                ],
+              ],
+            },
+          }],
+        },
+      },
+    ]);
+
+    const result = await salvarIdeia({ titulo: 'Titulo Plano', descricao: 'Desc Plano', tema: 'Tecnologia', categoria: 'App' });
+
+    const body = JSON.parse(mock.mock.calls[1][1].body);
+    const args = body.requests[0].stmt.args;
+    // titulo e descricao devem ser plaintext (sem cifragem)
+    expect(args[0].value).toBe('Titulo Plano');
+    expect(args[1].value).toBe('Desc Plano');
     const sql = body.requests[0].stmt.sql;
     expect(sql).not.toContain('usuario_id');
   });
