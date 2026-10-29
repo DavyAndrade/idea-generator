@@ -1,8 +1,8 @@
-# Gerador de Ideias
+# Lumi
 
-App PWA (Progressive Web App) que gera ideias criativas usando **Gemini** com
+**Lumi** é um PWA (Progressive Web App) que ilumina ideias criativas usando **Gemini** com
 **BYOK** (Bring Your Own Key): o usuário informa a própria chave de API do
-Google AI Studio.
+Google AI Studio, protegida com criptografia ponta a ponta (`AES-256-GCM`).
 
 ## Stack
 

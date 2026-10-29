@@ -1,7 +1,7 @@
 {
-  "name": "Gerador de Ideias",
-  "short_name": "Ideias",
-  "description": "Gere ideias criativas usando o Gemini com sua própria chave de API.",
+  "name": "Lumi — Ideias iluminadas por IA",
+  "short_name": "Lumi",
+  "description": "Ilumine ideias criativas usando o Gemini com sua própria chave de API.",
   "start_url": "/",
   "display": "standalone",
   "lang": "pt-BR",

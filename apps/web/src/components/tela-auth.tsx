@@ -74,12 +74,12 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            {modo === "entrar" ? "Entrar" : "Criar conta"}
+            {modo === "entrar" ? "Entrar no Lumi" : "Criar conta no Lumi"}
           </CardTitle>
           <CardDescription>
             {modo === "entrar"
-              ? "Acesse sua conta para sincronizar sua chave de API."
-              : "Crie sua conta para começar a gerar ideias."}
+              ? "Acesse sua conta para sincronizar suas ideias e chave de API."
+              : "Crie sua conta para iluminar novas ideias com IA."}
           </CardDescription>
         </CardHeader>
 

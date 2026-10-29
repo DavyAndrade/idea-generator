@@ -2,7 +2,7 @@
 
 ## Project
 
-Gerador de Ideias — PWA React que gera ideias criativas via Gemini (BYOK).
+Lumi (Gerador de Ideias) — PWA React que gera ideias criativas via Gemini (BYOK).
 Repositório: `/home/davy/Desenvolvimento/Projetos/GeradorDeIdeias`
 
 ## Commands

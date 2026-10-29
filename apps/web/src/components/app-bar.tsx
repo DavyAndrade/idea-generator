@@ -1,4 +1,4 @@
-import { Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun, LogOut, Sparkles } from "lucide-react";
 import { Button } from "./ui/button";
 
 interface AppBarProps {
@@ -19,7 +19,10 @@ export function AppBar({
   return (
     <header className="border-b bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="flex h-14 items-center justify-between px-4">
-        <h1 className="text-lg font-semibold">Gerador de Ideias</h1>
+        <div className="flex items-center gap-2">
+          <Sparkles size={18} className="text-primary" />
+          <h1 className="text-lg font-semibold tracking-tight">Lumi</h1>
+        </div>
         <div className="flex items-center gap-2">
           {primeiroNome && (
             <span className="text-sm text-muted-foreground">
