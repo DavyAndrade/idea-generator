@@ -1,4 +1,5 @@
 import { argon2id, argon2Verify } from 'hash-wasm';
+import { ensureEnv } from './turso';
 
 const SALT_BYTES = 16;
 
@@ -17,6 +18,7 @@ function hexToBuf(hex: string): Uint8Array {
 }
 
 export function getPepper(): string {
+  ensureEnv();
   return (
     process.env.AUTH_PEPPER ||
     process.env.VITE_AUTH_PEPPER ||

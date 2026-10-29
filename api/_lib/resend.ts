@@ -13,6 +13,8 @@ interface ResendResponse {
   error?: string;
 }
 
+import { ensureEnv } from './turso';
+
 const RESEND_BASE = 'https://api.resend.com/emails';
 
 // Modo de testes locais: força a exibição do link no terminal/console
@@ -20,6 +22,7 @@ const RESEND_BASE = 'https://api.resend.com/emails';
 export const FORCAR_CONSOLE_LOCAL = true;
 
 function getApiKey(): string | null {
+  ensureEnv();
   return (
     process.env.RESEND_API_KEY ||
     process.env.RESEND_KEY ||

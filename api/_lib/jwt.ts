@@ -1,4 +1,5 @@
 // Gerenciamento de tokens de sessão seguros via HMAC-SHA256 com Web Crypto nativo (Zero dependências)
+import { ensureEnv } from './turso';
 
 interface SessionPayload {
   userId: number;
@@ -7,6 +8,7 @@ interface SessionPayload {
 }
 
 function getJwtSecret(): string {
+  ensureEnv();
   const secret =
     process.env.JWT_SECRET ||
     process.env.AUTH_PEPPER ||

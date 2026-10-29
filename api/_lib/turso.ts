@@ -1,7 +1,34 @@
 // Cliente HTTP server-side para a API Pipeline v2 do Turso (Hrana v2)
 // Lê apenas credenciais do ambiente do servidor (process.env)
+import fs from 'node:fs';
+import path from 'node:path';
+
+export function ensureEnv(): void {
+  if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) return;
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf-8');
+      for (const line of content.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx !== -1) {
+          const key = trimmed.slice(0, eqIdx).trim();
+          const val = trimmed.slice(eqIdx + 1).trim();
+          if (!process.env[key]) {
+            process.env[key] = val;
+          }
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+}
 
 function getBaseUrl(): string {
+  ensureEnv();
   const raw =
     process.env.TURSO_DATABASE_URL ||
     process.env.VITE_TURSO_DATABASE_URL ||
@@ -15,6 +42,7 @@ function getBaseUrl(): string {
 }
 
 function getToken(): string {
+  ensureEnv();
   const token =
     process.env.TURSO_AUTH_TOKEN ||
     process.env.VITE_TURSO_AUTH_TOKEN ||
