@@ -45,6 +45,7 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
   // Modal de chave de recuperação
   const [mostrarModalRecuperacao, setMostrarModalRecuperacao] = useState(false);
   const [chaveRecuperacao, setChaveRecuperacao] = useState("");
+  const [sessaoPendente, setSessaoPendente] = useState<UsuarioSessao | null>(null);
 
   const limparErro = () => setErro(null);
 
@@ -136,7 +137,7 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
         } catch {
           // Fallback: chave gerada mas não salva no servidor — usuário deve anotar
         }
-        onAutenticado(sessao);
+        setSessaoPendente(sessao);
         setMostrarModalRecuperacao(true);
       } else {
         onAutenticado(sessao);
@@ -150,7 +151,10 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
 
   const handleFecharModalRecuperacao = () => {
     setMostrarModalRecuperacao(false);
-    // Após fechar o modal, o usuário continua na tela principal
+    if (sessaoPendente) {
+      onAutenticado(sessaoPendente);
+      setSessaoPendente(null);
+    }
   };
 
   return (
@@ -327,7 +331,13 @@ export function TelaAuth({ onAutenticado }: TelaAuthProps) {
 
       <ModalChaveRecuperacao
         open={mostrarModalRecuperacao}
-        onOpenChange={setMostrarModalRecuperacao}
+        onOpenChange={(aberto) => {
+          setMostrarModalRecuperacao(aberto);
+          if (!aberto && sessaoPendente) {
+            onAutenticado(sessaoPendente);
+            setSessaoPendente(null);
+          }
+        }}
         chaveRecuperacao={chaveRecuperacao}
         onClose={handleFecharModalRecuperacao}
       />
